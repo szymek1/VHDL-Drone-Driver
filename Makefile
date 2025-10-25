@@ -45,10 +45,10 @@ PROGRAM_TCL     := $(SCRIPTS_DIR)/program_board.tcl
 DEP_ANALYZER    := $(ROOT_DIR)/dep_analyzer.py
 
 # Project's details
-project_name    := simple_uart
-top_module	    := uart_top
-language 	    := verilog
-device 		    := xc7z020clg400-1
+project_name    := drone_basys3
+top_module	    := drone_top
+language 	    := vhdl
+device 		    := xc7a35tcpg236-1
 
 VIVADO_CMD 		:= vivado -mode batch
 
