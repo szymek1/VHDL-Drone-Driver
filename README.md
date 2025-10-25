@@ -1,17 +1,18 @@
-# FPGA-TCL-Makefile-template
+# Drone control in VHDL
 ## Overview
-Repository containing TCL-Makefile template for FPGA projects intended to automate build, test and program processes.
-This template utilizes TCL scripting language in conjunction with Makefile. It provides a clear template for describing FPGA project:
-- project name
-- top module
-- HDL of choice (Verilog, VHDL, System Verilog)
-- FPGA device for synthezis
+This repository contains VHDL project for a 2-wheels drone, which task is to use color detection sensors to navigate itself- following 
+the black line. 
 
-It currently supports only Xilinx Vivado simulators.
-TCL part of this project got inspired by this [Vivado tempate](https://github.com/adamchristiansen/minimal-vivado-template/blob/main/generate_project.tcl).
+This project targets [Basys3 FPGA](https://digilent.com/reference/programmable-logic/basys-3/start?srsltid=AfmBOootJ_Xc5RPQhrUF_4EjSZz0n5AzfdAWLAsDfwucPtwLKkmuGbEX). This device is the driver for a 2-wheel drone, which is equipped with 
+color detection sensors. These sensors are used to determine where is the black line that the drone has to follow. The black line defines
+the path.
+
+### Task description
+The drone is initially in the ```IDLE``` state and is awaiting for a button press which sets it to ```RUNNING``` state. Since the 
+button trigger drone begins to follow the black line which is underneath it- in case of no black line beneath the robot it pauses (awaiting in the ```RUNNING``` mode). As long as robot can detect the black line it follows it effectively performing loops according to the track geometry.
 
 ## Structure
-The template inposes a specific project's structure which has to be followed in order to use it.
+The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
 ```
 .
 ├── bin
@@ -38,7 +39,7 @@ The template inposes a specific project's structure which has to be followed in 
 - ```simulation/```: stores simulation results and logs per run testbench
 - ```src/```: stores HDL and tesbenches source code as well as constraint file
 
-The Makefile from the root directory requires the following structure and to some extend it can instantiate it.
+There is one main Makefile specyfying all the targets and the target platform.
 
 ## Usage
 Inside the Makefile user can specify paths to descirbed above directories. Provided Makefile contains an example how this could look like.
