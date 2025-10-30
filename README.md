@@ -14,6 +14,16 @@ button trigger drone begins to follow the black line which is underneath it- in 
 ### Architecture
 The source code for the drone is entirely done in VHDL. 
 
+Its comoponents are separated in the two principal packages:
+
+- ```drone_utils_pkg```: contains generic IPs (```pwm_generic```, ```clk_divider_generic```, ```edge_detector```) used to directly interact with the hardware and electric motors
+- ```screen_utils_pgq```: ***TODO***
+
+The application logic is controller by two state machines: 
+
+- ```main_FSM```: decides when the robot starts and stops according to the push of the button
+- ```movement_FSM```: while the robot is allowed to move it responds to black line sensors to determine th epath which follows the line
+
 ## Project's Structure
 The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
 ```
