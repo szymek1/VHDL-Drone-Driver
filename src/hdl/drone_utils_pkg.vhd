@@ -1,0 +1,25 @@
+-----------------------------------------------------------------------------------
+-- Company: ISAE
+-- Engineer: Szymon Bogus
+-- 
+-- Create Date: 30.10.25
+-- Design Name: 
+-- Module Name: drone_utils_pkg
+-- Project Name: drone_basys3
+-- Target Devices: Basys 3
+-- Tool Versions: 
+-- Description: Utilities VHDL package with common generic modules to support
+--              motors control:
+--              -> edge_detector
+--              -> pwm_generic
+--              -> clk_divider_generic
+--              
+--              It also defines hardware parameters for the traget platform.
+-- 
+-- Dependencies:
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+-----------------------------------------------------------------------------------

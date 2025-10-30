@@ -1,0 +1,20 @@
+-----------------------------------------------------------------------------------
+-- Company: ISAE
+-- Engineer: Szymon Bogus
+-- 
+-- Create Date: 30.10.25
+-- Design Name: 
+-- Module Name: edge_detector
+-- Project Name: drone_basys3
+-- Target Devices: Basys 3
+-- Tool Versions: 
+-- Description: Module providing edge detection capability. Its purpose for the project
+--              is to properly detect button push and send the trigger signal.
+-- 
+-- Dependencies: drone_utils_pkg
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+-----------------------------------------------------------------------------------
