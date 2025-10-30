@@ -40,10 +40,10 @@ package drone_utils_pkg is
             G_RISING_EDGE: boolean := true; -- detect rising edge by default
         );
         port (
-            i_clk: in std_logic;
-            i_rst_n: in std_logic;
-            i_signal: in std_logic;
-            o_edge: out std_logic -- set to high for one clock cycle
+            i_clk   : in  std_logic;
+            i_rst_n : in  std_logic;
+            i_signal: in  std_logic;
+            o_edge  : out std_logic -- set to high for one clock cycle
         );
     end component; -- end of edge_detector
     
