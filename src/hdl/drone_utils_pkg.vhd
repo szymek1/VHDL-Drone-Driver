@@ -31,13 +31,16 @@ use ieee.std_logic_1164.all;
 
 package drone_utils_pkg is
     -- General hardware parameters
-    constant C_BASYS3_SYSCLK_HZ: integer := 50_000_000; -- system clock frequency (50MHz)
-    constant C_PWM_CLK_HZ      : integer := 5_000;      -- target PWM frequency (5kHz)
+    constant C_BASYS3_SYSCLK_HZ: integer := 100_000_000; -- system clock frequency (100MHz)
+    constant C_PWM_CLK_HZ      : integer := 5_000;       -- target PWM frequency (5kHz)
+
+    -- Simulation parameters
+    constant C_BASYS3_SYSCLK_NS: time    := 10 ns;       -- 100MHz -> 10ns 
 
     -- Edge detector
     component edge_detector is
         generic (
-            G_RISING_EDGE: boolean := true; -- detect rising edge by default
+            G_RISING_EDGE: boolean := true  -- detect rising edge by default
         );
         port (
             i_clk   : in  std_logic;

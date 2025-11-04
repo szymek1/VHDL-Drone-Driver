@@ -63,6 +63,9 @@ clockInfo.txt
 *.tcf
 *.wdb
 
+# vhdl
+*.cf
+
 # others
 unisims
 
