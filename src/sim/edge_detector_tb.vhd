@@ -8,7 +8,7 @@
 -- Project Name: drone_basys3
 -- Target Devices: Basys 3
 -- Tool Versions: 
--- Description: Testbench for edge_detector
+-- Description: Testbench for edge_detector and btn_debouncer
 -- 
 -- Dependencies: drone_utils_pkg
 -- 
@@ -21,6 +21,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 library work;
 use work.drone_utils_pkg.all;
@@ -31,13 +33,30 @@ end; -- end of entity
 
 
 architecture testbench of edge_detector_tb is
-    signal i_clk   : std_logic := '0';
-    signal i_rst_n : std_logic := '0';
-    signal i_signal: std_logic := '0';
-    signal o_edge  : std_logic;
+    -- Constants
+    constant C_CORRECT_DEBOUNCE_CLK_TICKS : positive := (C_BASYS3_SYSCLK_HZ / 1000) * C_DEBOUNCE_TIMEOUT_MS;
+    -- DUVs signals
+    signal i_clk          : std_logic := '0';
+    signal i_rst_n        : std_logic := '0';
+    signal i_signal       : std_logic := '0'; -- input to btn_debouncer
+    signal o_btn_debounced: std_logic := '0'; -- output of btn_debouncer/ input to edge_detector
+    signal o_edge         : std_logic;        -- output of edge_detector
 begin
 
-    duv: edge_detector 
+    btn_debouncer_duv: btn_debouncer 
+        generic map (
+            G_DEBOUNCE_TIMEOUT_MS => C_DEBOUNCE_TIMEOUT_MS,
+            G_CLK_FREQ_HZ         => C_BASYS3_SYSCLK_HZ
+        )
+
+        port map (
+            i_clk           => i_clk,
+            i_rst_n         => i_rst_n,
+            i_btn           => i_signal,
+            o_btn_debounced => o_btn_debounced
+        );
+
+    egde_detector_duv: edge_detector 
         generic map (
             G_RISING_EDGE => true
         )
@@ -45,7 +64,7 @@ begin
         port map (
             i_clk    => i_clk,
             i_rst_n  => i_rst_n,
-            i_signal => i_signal,
+            i_signal => o_btn_debounced,
             o_edge   => o_edge
         );
 
@@ -56,17 +75,38 @@ begin
     begin
         wait until i_rst_n = '1';
         -- Simulation begins here
+        -- Perfect signal
+        report "Perfect signal";
         i_signal <= '0';
         wait for 2 * C_BASYS3_SYSCLK_NS;
 
         i_signal <= '1';
-        wait for 3 * C_BASYS3_SYSCLK_NS;
+        wait for (C_CORRECT_DEBOUNCE_CLK_TICKS + 2) * C_BASYS3_SYSCLK_NS;
 
+        -- Debouncing: back to 0
+        report "Bounce from 0 to 1 and then to 0 again";
         i_signal <= '0';
-        wait for C_BASYS3_SYSCLK_NS;
+        wait for time(0.5 * real(C_CORRECT_DEBOUNCE_CLK_TICKS) * C_BASYS3_SYSCLK_NS);
 
         i_signal <= '1';
-        wait for 3 * C_BASYS3_SYSCLK_NS;
+        wait for C_BASYS3_SYSCLK_NS;
+
+        i_signal <= '0';
+        wait for time(0.5 * real(C_CORRECT_DEBOUNCE_CLK_TICKS + 2) * C_BASYS3_SYSCLK_NS - C_BASYS3_SYSCLK_NS);
+
+        -- Debouncing: from 0 to 1 and then to 0 and then to 1 again
+        report "Bounce from 0 to 1 and then to 0 and to 1 again";
+        i_signal <= '0';
+        wait for time(0.1 * real(C_CORRECT_DEBOUNCE_CLK_TICKS) * C_BASYS3_SYSCLK_NS);
+
+        i_signal <= '1';
+        wait for time(0.1 * real(C_CORRECT_DEBOUNCE_CLK_TICKS) * C_BASYS3_SYSCLK_NS);
+
+        i_signal <= '0';
+        wait for time(0.2 * real(C_CORRECT_DEBOUNCE_CLK_TICKS) * C_BASYS3_SYSCLK_NS);
+
+        i_signal <= '1';
+        wait for (C_CORRECT_DEBOUNCE_CLK_TICKS + 10) * C_BASYS3_SYSCLK_NS;
 
         -- end of the simulation
         wait for 5 * C_BASYS3_SYSCLK_NS;
