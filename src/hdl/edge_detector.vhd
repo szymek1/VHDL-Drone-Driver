@@ -10,12 +10,13 @@
 -- Tool Versions: 
 -- Description: Module providing edge detection capability. Its purpose for the project
 --              is to properly detect button push and send the trigger signal.
+--              IMPORTANT: the module assumes i_signal is synchornized
 -- 
 -- Dependencies: drone_utils_pkg
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
--- Additional Comments:
+-- Additional Comments: i_signal is provided by btn_debouncer, which synchornizes it
 -- 
 -----------------------------------------------------------------------------------
 
