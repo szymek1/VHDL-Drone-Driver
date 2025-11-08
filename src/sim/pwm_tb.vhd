@@ -22,6 +22,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 library work;
 use work.drone_utils_pkg.all;
@@ -32,12 +33,27 @@ end; -- end of entity
 
 
 architecture testbench of pwm_tb is
+    -- Utilities
+    function compute_duty_cycle (
+        percentage_value : integer;
+        bits             : integer
+    ) return unsigned is
+        variable max_val   : real;
+        variable duty_real : real; 
+        variable duty_int  : integer; 
+    begin
+        max_val := (2.0**real(bits)) - 1.0;
+        duty_real := (real(percentage_value) / 100.0) * max_val;
+        duty_int := integer(round(duty_real));
+        return to_unsigned(duty_int, bits);
+        
+    end function compute_duty_cycle;
     -- Constants
     constant C_PWM_BITS_TEST : integer  := 8;
     constant C_PWM_G_CLK_DIV : positive := 78;
-    constant DUTY_CYCLE_15_PROC: unsigned(C_PWM_BITS_TEST - 1 downto 0) := to_unsigned(38, C_PWM_BITS_TEST);  -- 15% of 256
-    constant DUTY_CYCLE_50_PROC: unsigned(C_PWM_BITS_TEST - 1 downto 0) := to_unsigned(128, C_PWM_BITS_TEST); -- 50% of 256
-    constant DUTY_CYCLE_90_PROC: unsigned(C_PWM_BITS_TEST - 1 downto 0) := to_unsigned(230, C_PWM_BITS_TEST); -- 90% of 256
+    constant DUTY_CYCLE_15_PROC: unsigned(C_PWM_BITS_TEST - 1 downto 0) := compute_duty_cycle(15, C_PWM_BITS_TEST);
+    constant DUTY_CYCLE_50_PROC: unsigned(C_PWM_BITS_TEST - 1 downto 0) := compute_duty_cycle(50, C_PWM_BITS_TEST);
+    constant DUTY_CYCLE_90_PROC: unsigned(C_PWM_BITS_TEST - 1 downto 0) := compute_duty_cycle(90, C_PWM_BITS_TEST);
     
     -- DUV signals
     signal i_clk       : std_logic := '0';
