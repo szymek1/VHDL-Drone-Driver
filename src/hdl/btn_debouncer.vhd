@@ -35,7 +35,7 @@ entity btn_debouncer is
         i_clk          : in std_logic;
         i_rst_n        : in std_logic;
         i_btn          : in std_logic;
-        o_btn_debounced: out std_logic;
+        o_btn_debounced: out std_logic
     );
 end; -- end of the entity
 

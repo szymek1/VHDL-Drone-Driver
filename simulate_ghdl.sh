@@ -1,8 +1,11 @@
 #!/bin/bash
 #
-# This script compiles and runs the VHDL simulation for the
-# edge_detector using GHDL. It will generate a VCD waveform
-# file that can be viewed with GTKWave.
+# This script compiles and runs a VHDL simulation using GHDL.
+# It uses arrays to support multiple source files.
+#
+# To use:
+# 1. Set the TB_ENTITY to the name of the testbench you want to run.
+# 2. Update the SRC_FILES array to include all dependencies.
 #
 # Make this script executable:
 #   chmod +x simulate.sh
@@ -14,44 +17,66 @@
 # Stop immediately if any command fails
 set -e
 
-# Define file paths
-# Note: This assumes you run this script from the project root
+# --- 1. CONFIGURE YOUR TEST ---
+#
+# Set the name of the top-level testbench entity
+TB_ENTITY="edge_detector_tb"
+#
+# List all VHDL source files (order doesn't matter)
+# These are your 'hardware' modules from src/hdl/
+SRC_FILES=(
+    "src/hdl/btn_debouncer.vhd"
+    "src/hdl/edge_detector.vhd"
+)
+#
+# List all VHDL testbench files
+# (Usually just one, but supports more)
+TB_FILES=(
+    "src/sim/edge_detector_tb.vhd"
+)
+#
+# Define the package file(s). These will be compiled FIRST.
 PKG_FILE="src/hdl/drone_utils_pkg.vhd"
-SRC_FILE="src/hdl/pwm.vhd"
-TB_FILE="src/sim/pwm_tb.vhd"
+#
+# --- END OF CONFIGURATION ---
 
-# Define the top-level testbench entity
-TB_ENTITY="pwm_tb"
 
-# Define the output waveform file
+# --- 2. SCRIPT SETUP ---
+VHDL_STD="--std=08" # Use VHDL-2008
 WAVEFORM_FILE="simulation/waveforms/${TB_ENTITY}.vcd"
-VHDL_STD="--std=08" # Use VHDL-2008 for 'assert ... failure'
 
-# --- 1. CLEANUP ---
-# Create directories if they don't exist
+# --- 3. CLEANUP ---
 mkdir -p simulation/waveforms
-# Remove old compiled files and waveform
 echo "--- Cleaning up old files ---"
 rm -f *.cf $WAVEFORM_FILE
 
-# --- 2. ANALYZE (Compile) ---
-# Compilation order is critical. The package MUST be first.
+# --- 4. ANALYZE (Compile) ---
 echo "--- Compiling VHDL files ---"
+
+# Compilation order is critical. The package MUST be first.
 echo "Compiling package: $PKG_FILE"
 ghdl -a $VHDL_STD $PKG_FILE
 
-echo "Compiling entity: $SRC_FILE"
-ghdl -a $VHDL_STD $SRC_FILE
+# Loop and compile all source files
+echo "Compiling source files..."
+for src_file in "${SRC_FILES[@]}"; do
+    echo "  Compiling: $src_file"
+    ghdl -a $VHDL_STD "$src_file"
+done
 
-echo "Compiling testbench: $TB_FILE"
-ghdl -a $VHDL_STD $TB_FILE
+# Loop and compile all testbench files
+echo "Compiling testbench files..."
+for tb_file in "${TB_FILES[@]}"; do
+    echo "  Compiling: $tb_file"
+    ghdl -a $VHDL_STD "$tb_file"
+done
 
-# --- 3. ELABORATE ---
+# --- 5. ELABORATE ---
 # This builds the simulation executable
 echo "--- Elaborating testbench: $TB_ENTITY ---"
 ghdl -e $VHDL_STD $TB_ENTITY
 
-# --- 4. RUN ---
+# --- 6. RUN ---
 # This runs the simulation and dumps the VCD file
 echo "--- Running simulation ---"
 ghdl -r $VHDL_STD $TB_ENTITY --vcd=$WAVEFORM_FILE

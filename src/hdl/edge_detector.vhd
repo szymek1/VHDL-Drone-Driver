@@ -44,7 +44,7 @@ begin
     egde_detect_process : process (i_clk, i_rst_n) is
     begin
         if (i_rst_n = '0') then
-            s_prev_i_signals <= '0';
+            s_prev_i_signal <= '0';
             o_edge           <= '0';
         elsif rising_edge(i_clk) then
             s_prev_i_signal <= i_signal;
