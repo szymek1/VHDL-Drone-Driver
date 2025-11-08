@@ -32,8 +32,8 @@ use ieee.numeric_std.all;
 
 package drone_utils_pkg is
     -- General hardware parameters
-    constant C_BASYS3_SYSCLK_HZ: integer := 100_000_000; -- system clock frequency (100MHz)
-    constant C_PWM_CLK_HZ      : integer := 5_000;       -- target PWM frequency (5kHz)
+    constant C_BASYS3_SYSCLK_HZ: positive := 100_000_000;                    -- system clock frequency (100MHz)
+    constant C_PWM_CLK_HZ      : positive := 5_000;                          -- target PWM frequency (5kHz)
 
     -- Simulation parameters
     constant C_BASYS3_SYSCLK_NS: time    := 10 ns;       -- 100MHz -> 10ns 
@@ -50,6 +50,20 @@ package drone_utils_pkg is
             o_edge  : out std_logic -- set to high for one clock cycle
         );
     end component; -- end of edge_detector
+
+    -- Button debouncer
+    component btn_debouncer is
+        generic (
+            G_DEBOUNCE_TIMEOUT_MS: positive := 20; -- button debounce time delay (by default 20ms)
+            G_CLK_FREQ_HZ        : positive := C_BASYS3_SYSCLK_HZ
+        );
+        port (
+            i_clk          : in std_logic;
+            i_rst_n        : in std_logic;
+            i_btn          : in std_logic;
+            o_btn_debounced: out std_logic;
+        );
+    end component; -- end of btn_debouncer
 
     -- PWM
     component pwm is
