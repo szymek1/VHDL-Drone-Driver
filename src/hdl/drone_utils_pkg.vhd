@@ -27,6 +27,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 
 package drone_utils_pkg is
@@ -53,17 +54,22 @@ package drone_utils_pkg is
     -- PWM
     component pwm is
         generic (
-            -- allowed values:
-            -- - 15 %
-            -- - 50 %
-            -- - 90 %
-            G_DUTY_CYCLE: integer
+            G_PWM_BITS: integer;        -- specifies the resolution
+                                        -- if equal to 8 bits the PWM counter will
+                                        -- count from 0 to 255
+
+            G_CLK_DIV : positive := 78  -- clock divider, it specifies how many
+                                        -- "fast clk ticks" equal one "slow clk tick"
+                                        -- set by default to the value allowing to 
+                                        -- create 5kHz signal from 100MHz clock
         );
         port (
-            i_clk  : in std_logic;
-            i_rst_n: in std_logic;
-            o_pwm  : out std_logic;
-            o_cnt  : out std_logic_vector(7 downto 0);
+            i_clk           : in  std_logic;
+            i_rst_n         : in  std_logic;
+            i_enb           : in  std_logic; -- when set high the PWM signal will be generated
+            i_duty_cycle    : in  unsigned(G_PWM_BITS - 1 downto 0);
+            o_pwm           : out std_logic;
+            o_pwm_cnt       : out unsigned(G_PWM_BITS - 1 downto 0)
         );
     end component; -- end of pwm
     

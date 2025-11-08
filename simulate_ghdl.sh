@@ -17,11 +17,11 @@ set -e
 # Define file paths
 # Note: This assumes you run this script from the project root
 PKG_FILE="src/hdl/drone_utils_pkg.vhd"
-SRC_FILE="src/hdl/edge_detector.vhd"
-TB_FILE="src/sim/edge_detector_tb.vhd"
+SRC_FILE="src/hdl/pwm.vhd"
+TB_FILE="src/sim/pwm_tb.vhd"
 
 # Define the top-level testbench entity
-TB_ENTITY="edge_detector_tb"
+TB_ENTITY="pwm_tb"
 
 # Define the output waveform file
 WAVEFORM_FILE="simulation/waveforms/${TB_ENTITY}.vcd"
