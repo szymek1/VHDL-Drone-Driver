@@ -32,11 +32,11 @@ use ieee.numeric_std.all;
 
 package drone_utils_pkg is
     -- General hardware parameters
-    constant C_BASYS3_SYSCLK_HZ: positive := 100_000_000;                    -- system clock frequency (100MHz)
-    constant C_PWM_CLK_HZ      : positive := 5_000;                          -- target PWM frequency (5kHz)
+    constant C_BASYS3_SYSCLK_HZ: positive := 100_000_000; -- system clock frequency (100MHz)
+    constant C_PWM_CLK_HZ      : positive := 5_000;       -- target PWM frequency (5kHz)
 
     -- Simulation parameters
-    constant C_BASYS3_SYSCLK_NS: time    := 10 ns;       -- 100MHz -> 10ns 
+    constant C_BASYS3_SYSCLK_NS: time    := 10 ns;        -- 100MHz -> 10ns 
 
     -- Edge detector
     component edge_detector is
