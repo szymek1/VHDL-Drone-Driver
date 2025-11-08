@@ -16,7 +16,7 @@ The source code for the drone is entirely done in VHDL.
 
 Its comoponents are separated in the two principal packages:
 
-- ```drone_utils_pkg```: contains generic IPs (```pwm_generic```, ```clk_divider_generic```, ```edge_detector```) used to directly interact with the hardware and electric motors
+- ```drone_utils_pkg```: contains generic IPs (```pwm_generic```, ```clk_divider_generic```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
 - ```screen_utils_pgq```: ***TODO***
 
 The application logic is controller by two state machines: 
