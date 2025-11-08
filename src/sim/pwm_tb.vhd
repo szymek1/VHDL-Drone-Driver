@@ -33,21 +33,6 @@ end; -- end of entity
 
 
 architecture testbench of pwm_tb is
-    -- Utilities
-    function compute_duty_cycle (
-        percentage_value : integer;
-        bits             : integer
-    ) return unsigned is
-        variable max_val   : real;
-        variable duty_real : real; 
-        variable duty_int  : integer; 
-    begin
-        max_val := (2.0**real(bits)) - 1.0;
-        duty_real := (real(percentage_value) / 100.0) * max_val;
-        duty_int := integer(round(duty_real));
-        return to_unsigned(duty_int, bits);
-        
-    end function compute_duty_cycle;
     -- Constants
     constant C_PWM_BITS_TEST : integer  := 8;
     constant C_PWM_G_CLK_DIV : positive := 78;

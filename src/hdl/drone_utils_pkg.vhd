@@ -91,3 +91,22 @@ package drone_utils_pkg is
     
 
 end package drone_utils_pkg; -- end of the package
+
+
+package body drone_utils_pkg is 
+    function compute_duty_cycle (
+        percentage_value : integer;
+        bits             : integer
+    ) return unsigned is
+        variable max_val   : real;
+        variable duty_real : real; 
+        variable duty_int  : integer; 
+    begin
+        max_val := (2.0**real(bits)) - 1.0;
+        duty_real := (real(percentage_value) / 100.0) * max_val;
+        duty_int := integer(round(duty_real));
+        return to_unsigned(duty_int, bits);
+        
+    end function compute_duty_cycle;
+
+end drone_utils_pkg;
