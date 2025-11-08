@@ -11,8 +11,8 @@
 -- Description: Utilities VHDL package with common generic modules to support
 --              motors control:
 --              -> edge_detector
---              -> pwm_generic
---              -> clk_divider_generic
+--              -> pwm
+--              -> btn_debouncer
 --              
 --              It also defines hardware parameters for the traget platform.
 -- 
