@@ -33,6 +33,7 @@ Start/Stop FSM responds to ```btn_pressed``` trigger signal by switching between
 - ```RUNNING```
 
 Signal ```btn_pressed``` is the output of ```edge_detector```. State ```RUNNING``` activates ```movement_FSM``` to leave its ```IDLE``` state.
+![start_stop_FMS_diagram](docs/start_stop_FSM.drawio.png)
 
 ## Project's Structure
 The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
