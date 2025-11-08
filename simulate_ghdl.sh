@@ -20,23 +20,28 @@ set -e
 # --- 1. CONFIGURE YOUR TEST ---
 #
 # Set the name of the top-level testbench entity
-TB_ENTITY="edge_detector_tb"
+TB_ENTITY="start_stop_FSM_tb"
 #
 # List all VHDL source files (order doesn't matter)
 # These are your 'hardware' modules from src/hdl/
 SRC_FILES=(
     "src/hdl/btn_debouncer.vhd"
     "src/hdl/edge_detector.vhd"
+    "src/hdl/start_stop_FSM.vhd"
 )
 #
 # List all VHDL testbench files
 # (Usually just one, but supports more)
 TB_FILES=(
-    "src/sim/edge_detector_tb.vhd"
+    "src/sim/start_stop_FSM_tb.vhd"
 )
 #
 # Define the package file(s). These will be compiled FIRST.
-PKG_FILE="src/hdl/drone_utils_pkg.vhd"
+# PKG_FILE="src/hdl/drone_utils_pkg.vhd"
+PKG_FILES=(
+    "src/hdl/drone_utils_pkg.vhd"
+    "src/hdl/control_pkg.vhd"
+)
 #
 # --- END OF CONFIGURATION ---
 
@@ -54,8 +59,13 @@ rm -f *.cf $WAVEFORM_FILE
 echo "--- Compiling VHDL files ---"
 
 # Compilation order is critical. The package MUST be first.
-echo "Compiling package: $PKG_FILE"
-ghdl -a $VHDL_STD $PKG_FILE
+# echo "Compiling package: $PKG_FILE"
+# ghdl -a $VHDL_STD $PKG_FILE
+echo "Compiling packages..."
+for pkg_file in "${PKG_FILES[@]}"; do
+    echo "  Compiling: $pkg_file"
+    ghdl -a $VHDL_STD "$pkg_file"
+done
 
 # Loop and compile all source files
 echo "Compiling source files..."
