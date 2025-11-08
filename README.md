@@ -14,15 +14,26 @@ button trigger drone begins to follow the black line which is underneath it- in 
 ### Architecture
 The source code for the drone is entirely done in VHDL. 
 
-Its comoponents are separated in the two principal packages:
+Its comoponents are separated in three principal packages:
 
-- ```drone_utils_pkg```: contains generic IPs (```pwm_generic```, ```clk_divider_generic```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
-- ```screen_utils_pgq```: ***TODO***
+- ```control_pkq```: contains two FSMs which control movement of the drone
+- ```drone_utils_pkg```: contains generic IPs (```pwm_generic```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
+- ```screen_utils_pkq```: ***TODO***
 
 The application logic is controller by two state machines: 
 
-- ```main_FSM```: decides when the robot starts and stops according to the push of the button
+- ```start_stop_FSM```: decides when the robot starts and stops according to the push of the button
 - ```movement_FSM```: while the robot is allowed to move it responds to black line sensors to determine th epath which follows the line
+
+#### FSMs
+##### Start/Stop FSM
+Start/Stop FSM responds to ```btn_pressed``` trigger signal by switching between two states:
+
+- ```IDLE```
+- ```RUNNING```
+
+Signal ```btn_pressed``` is the output of ```edge_detector```. State ```RUNNING``` activates ```movement_FSM``` to leave its ```IDLE``` state.
+![start_stop_FMS_diagram](docs/start_stop_FSM.drawio.png)
 
 ## Project's Structure
 The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
