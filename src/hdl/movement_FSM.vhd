@@ -134,9 +134,9 @@ begin
                         end if;
                     else
                         curr_state     <= IDLE;
-            end case;
+            end case
         end if;
-    end process movement_state_process;
+    end process movement_state_process
 
     pwm_control_process : process (curr_state) is
     begin
@@ -163,4 +163,4 @@ begin
         end case;
     end process pwm_control_process;
 
-end rtl;
+end rtl
