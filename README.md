@@ -14,6 +14,8 @@ button trigger drone begins to follow the black line which is underneath it- in 
 ### Architecture
 The source code for the drone is entirely done in VHDL. 
 
+![system_diagram](docs/system_diagram.drawio.svg)
+
 Its comoponents are separated in three principal packages:
 
 - ```control_pkq```: contains two FSMs which control movement of the drone
