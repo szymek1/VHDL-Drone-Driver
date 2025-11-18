@@ -32,13 +32,13 @@ Start/Stop FSM responds to ```btn_pressed``` trigger signal by switching between
 - ```IDLE```
 - ```RUNNING```
 
-Signal ```btn_pressed``` is the output of ```edge_detector```. State ```RUNNING``` activates ```movement_FSM``` to leave its ```IDLE``` state.
+Signal ```i_btn_pressed``` is the output of ```edge_detector```. State ```RUNNING``` activates ```movement_FSM``` to leave its ```IDLE``` state.
 ![start_stop_FMS_diagram](docs/start_stop_FSM.drawio.svg)
 
 ##### Movment FSM
 The idea behind following the path of the black line is to keep that line centrally underneath the drone. As already mentioned the drone has two sensors, which indicate when the black color is detected- this indicates a turn. When both sensors indicate 0 this means the robot is exactly underneath the line. This FSM controls the movement of the drone with four states:
 
-- ```IDLE```: robot remains in place awaiting for ```o_is_running``` signal from ```start_stop_FSM```
+- ```IDLE```: robot remains in place awaiting for ```i_is_running``` signal from ```start_stop_FSM```
 - ```FORWARD```: robot is moving forward when both sensors indicate 0; 50% of power to the engines
 - ```T_LEFT```: robot is turning to the left; right engine receives 15%, left engine receives 90% of power
 - ```T_RIGHT```: robot is turning to the right; right engine receives 90%, left engine receives 15% of power
