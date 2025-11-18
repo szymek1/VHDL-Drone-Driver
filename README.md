@@ -17,7 +17,7 @@ The source code for the drone is entirely done in VHDL.
 Its comoponents are separated in three principal packages:
 
 - ```control_pkq```: contains two FSMs which control movement of the drone
-- ```drone_utils_pkg```: contains generic IPs (```pwm_generic```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
+- ```drone_utils_pkg```: contains generic IPs (```pwm```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
 - ```screen_utils_pkq```: ***TODO***
 
 The application logic is controller by two state machines: 
@@ -39,13 +39,11 @@ Signal ```btn_pressed``` is the output of ```edge_detector```. State ```RUNNING`
 The idea behind following the path of the black line is to keep that line centrally underneath the drone. As already mentioned the drone has two sensors, which indicate when the black color is detected- this indicates a turn. When both sensors indicate 0 this means the robot is exactly underneath the line. This FSM controls the movement of the drone with four states:
 
 - ```IDLE```: robot remains in place awaiting for ```o_is_running``` signal from ```start_stop_FSM```
-- ```FORWARD```: robot is moving forward when both sensors indicate 0; 90% of power to the engines
-- ```T_LEFT```: robot is turning to the left; right engine receives 15%, left engine receives 50% of power
-- ```T_RIGHT```: robot is turning to the right; right engine receives 50%, left engine receives 15% of power
+- ```FORWARD```: robot is moving forward when both sensors indicate 0; 50% of power to the engines
+- ```T_LEFT```: robot is turning to the left; right engine receives 15%, left engine receives 90% of power
+- ```T_RIGHT```: robot is turning to the right; right engine receives 90%, left engine receives 15% of power
 
 ![movment_FMS_diagram](docs/movement_FSM.drawio.svg)
-
-***TODO:*** consider an intermediate step between each turn beginning where robot slows down to 15% equally just not to overshoot the line.
 
 ## Project's Structure
 The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
