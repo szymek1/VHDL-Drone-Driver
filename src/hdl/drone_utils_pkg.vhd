@@ -89,8 +89,10 @@ package drone_utils_pkg is
             o_pwm_cnt       : out unsigned(G_PWM_BITS - 1 downto 0)
         );
     end component; -- end of pwm
-    
 
+    -- Utility functions
+    function compute_duty_cycle (percentage_value : integer; bits : integer) return unsigned;
+    
 end package drone_utils_pkg; -- end of the package
 
 

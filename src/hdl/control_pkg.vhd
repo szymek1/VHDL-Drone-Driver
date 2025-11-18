@@ -50,7 +50,7 @@ package control_pkg is
             i_sensor_r   : in  std_logic;
             o_pwm_enb    : out std_logic;
             o_motor_l_pwm: out t_pwm_duty_cycle;
-            o_motor_r_pwm: out t_pwm_duty_cycle;
+            o_motor_r_pwm: out t_pwm_duty_cycle
         );
     end component;
 end package control_pkg; -- end of the package

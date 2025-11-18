@@ -36,6 +36,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library work;
+use work.control_pkg.all;
+
 
 entity movement_FSM is
     generic (
@@ -51,7 +54,7 @@ entity movement_FSM is
         i_sensor_r   : in  std_logic;
         o_pwm_enb    : out std_logic;
         o_motor_l_pwm: out t_pwm_duty_cycle;
-        o_motor_r_pwm: out t_pwm_duty_cycle;
+        o_motor_r_pwm: out t_pwm_duty_cycle
     );
 end; -- end of the entity
 
@@ -93,50 +96,54 @@ begin
         elsif rising_edge(i_clk) then
             case curr_state is
                 when IDLE    =>
-                    o_pwm_enb      <= '0';
+                    -- o_pwm_enb      <= '0';
                     if (i_is_running = '1') then
                         curr_state <= FORWARD;
                     else 
                         curr_state <= IDLE;
+                    end if;
 
                 when FORWARD =>
                     if (i_is_running = '1') then 
-                        if (safe_sensor_l = BALCK) and (safe_sensor_r = WHITE) then
+                        if (safe_sensor_l = WHITE) and (safe_sensor_r = BLACK) then
                             curr_state <= T_LEFT;
-                        elsif (safe_sensor_l = WHITE) and (safe_sensor_r = BLACK) then
+                        elsif (safe_sensor_l = BLACK) and (safe_sensor_r = WHITE) then
                             curr_state <= T_RIGHT;
                         else -- "00"
                             curr_state <= FORWARD; -- stay moving forward
                         end if;
                     else
                         curr_state     <= IDLE;
+                    end if;
 
                 when T_LEFT   =>
                     if (i_is_running = '1') then
                         if (safe_sensor_l = WHITE) and (safe_sensor_r = WHITE) then
                             curr_state <= FORWARD;
-                        elsif (safe_sensor_l = WHITE) and (safe_sensor_r = BALCK) then
+                        elsif (safe_sensor_l = BLACK) and (safe_sensor_r = WHITE) then
                             curr_state <= T_RIGHT;
                         else -- "10"
                             curr_state <= T_LEFT; -- stay turning to the left
                         end if;
                     else
                         curr_state     <= IDLE;
+                    end if;
 
                 when T_RIGHT   =>
                     if (i_is_running = '1') then
                         if (safe_sensor_l = WHITE) and (safe_sensor_r = WHITE) then
                             curr_state <= FORWARD;
-                        elsif (safe_sensor_l = BLACK) and (safe_sensor_r = WHITE) then
+                        elsif (safe_sensor_l = WHITE) and (safe_sensor_r = BLACK) then
                             curr_state <= T_LEFT;
                         else -- "01"
-                            curr_state <= T_RIGHT; -- ttay turning to the right
+                            curr_state <= T_RIGHT; -- stay turning to the right
                         end if;
                     else
                         curr_state     <= IDLE;
-            end case
+                    end if;
+                end case;
         end if;
-    end process movement_state_process
+    end process movement_state_process;
 
     pwm_control_process : process (curr_state) is
     begin
@@ -148,19 +155,19 @@ begin
             
             when FORWARD =>
                 o_pwm_enb     <= '1';
-                o_motor_l_pwm <= DUTY_CYCLE_90;
-                o_motor_r_pwm <= DUTY_CYCLE_90;
+                o_motor_l_pwm <= DUTY_CYCLE_50;
+                o_motor_r_pwm <= DUTY_CYCLE_50;
 
             when T_LEFT  =>
                 o_pwm_enb     <= '1';
-                o_motor_l_pwm <= DUTY_CYCLE_50;
+                o_motor_l_pwm <= DUTY_CYCLE_90;
                 o_motor_r_pwm <= DUTY_CYCLE_15;
 
             when T_RIGHT =>
                 o_pwm_enb     <= '1';
                 o_motor_l_pwm <= DUTY_CYCLE_15;
-                o_motor_r_pwm <= DUTY_CYCLE_50;
+                o_motor_r_pwm <= DUTY_CYCLE_90;
         end case;
     end process pwm_control_process;
 
-end rtl
+end rtl;

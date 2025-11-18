@@ -20,20 +20,23 @@ set -e
 # --- 1. CONFIGURE YOUR TEST ---
 #
 # Set the name of the top-level testbench entity
-TB_ENTITY="start_stop_FSM_tb"
+TB_ENTITY="drone_top_tb"
 #
 # List all VHDL source files (order doesn't matter)
 # These are your 'hardware' modules from src/hdl/
 SRC_FILES=(
+    "src/hdl/pwm.vhd"
     "src/hdl/btn_debouncer.vhd"
     "src/hdl/edge_detector.vhd"
     "src/hdl/start_stop_FSM.vhd"
+    "src/hdl/movement_FSM.vhd"
+    "src/hdl/drone_top.vhd"
 )
 #
 # List all VHDL testbench files
 # (Usually just one, but supports more)
 TB_FILES=(
-    "src/sim/start_stop_FSM_tb.vhd"
+    "src/sim/drone_top_tb.vhd"
 )
 #
 # Define the package file(s). These will be compiled FIRST.
