@@ -15,6 +15,7 @@
 bin/
 log/
 simulation/
+proj/
 
 # for Xilinx Vivado|ISE
 .Xil/
@@ -62,6 +63,9 @@ clockInfo.txt
 *.saif
 *.tcf
 *.wdb
+
+# vhdl
+*.cf
 
 # others
 unisims
