@@ -10,8 +10,8 @@
 -- Tool Versions: 
 -- Description: Module implementing generic PWM. In the project it is assumed
 --              to generate two instances of pwm:
---              - pwm_right_motor
---              - pwm_left_motor
+--              - U_PWM_LEFT: left motor
+--              - U_PWM_RIGHT: right motor
 --
 --              This implementation is based on the two counters approach.
 --              The first counter, defined as an internal signal- clk_cnt, is used
@@ -81,7 +81,10 @@ begin
     end process clk_divider_process;
 
     pwm_process : process (i_clk, i_rst_n) is
-        variable internal_pwm_cnt: unsigned(G_PWM_BITS - 1 downto 0);
+        variable internal_pwm_cnt: unsigned(G_PWM_BITS - 1 downto 0); -- added to comply
+                                                                      -- Vivado VHDL 2001, which doesn't allow for 
+                                                                      -- reading from out port, thus this variable was created
+                                                                      -- to mitgate that
     begin
         if (i_rst_n = '0') then
             o_pwm            <= '0';
