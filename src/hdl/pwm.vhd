@@ -81,15 +81,18 @@ begin
     end process clk_divider_process;
 
     pwm_process : process (i_clk, i_rst_n) is
+        variable internal_pwm_cnt: unsigned(G_PWM_BITS - 1 downto 0);
     begin
         if (i_rst_n = '0') then
-            o_pwm     <= '0';
-            o_pwm_cnt <= (others => '0');
+            o_pwm            <= '0';
+            o_pwm_cnt        <= (others => '0');
+            internal_pwm_cnt := (others => '0');
         elsif rising_edge(i_clk) then
             if (i_enb = '1') then
                 if (G_CLK_DIV = 1 or clk_cnt = 0) then
-                    o_pwm_cnt <= o_pwm_cnt + 1;
-                    o_pwm     <= '0';
+                    o_pwm_cnt        <= internal_pwm_cnt + 1;
+                    internal_pwm_cnt := internal_pwm_cnt + 1;
+                    o_pwm            <= '0';
 
                     -- The if-conditions below solves the issues of PWM with duty cycle
                     -- of 100%. It checks for the second largest usigned value and effectively
@@ -99,17 +102,18 @@ begin
                     -- the line unsigned(to_signed(-2, o_pwm_cnt'length) produces 8-bit long signed -2 but
                     -- interprets it as unsigned. -2 in binary is 11111110 and when interpreted as unsigned
                     -- it is exactly 254.
-                    if o_pwm_cnt = unsigned(to_signed(-2, o_pwm_cnt'length)) then
+                    if internal_pwm_cnt = unsigned(to_signed(-2, o_pwm_cnt'length)) then
                         o_pwm_cnt <= (others => '0');
                     end if;
 
-                    if (o_pwm_cnt < i_duty_cycle) then
-                        o_pwm <= '1';
+                    if (internal_pwm_cnt < i_duty_cycle) then
+                        o_pwm     <= '1';
                     end if;
                 end if;
             else
-                o_pwm     <= '0';
-                o_pwm_cnt <= (others => '0');
+                o_pwm            <= '0';
+                o_pwm_cnt        <= (others => '0');
+                internal_pwm_cnt := (others => '0');
             end if;
         end if;
     end process pwm_process;
