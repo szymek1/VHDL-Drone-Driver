@@ -11,8 +11,8 @@
 -- Description: Utilities VHDL package with common generic modules to support
 --              motors control:
 --              -> edge_detector
---              -> pwm_generic
---              -> clk_divider_generic
+--              -> pwm
+--              -> btn_debouncer
 --              
 --              It also defines hardware parameters for the traget platform.
 -- 
@@ -28,6 +28,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 
 package drone_utils_pkg is
@@ -88,6 +89,27 @@ package drone_utils_pkg is
             o_pwm_cnt       : out unsigned(G_PWM_BITS - 1 downto 0)
         );
     end component; -- end of pwm
-    
 
+    -- Utility functions
+    function compute_duty_cycle (percentage_value : integer; bits : integer) return unsigned;
+    
 end package drone_utils_pkg; -- end of the package
+
+
+package body drone_utils_pkg is 
+    function compute_duty_cycle (
+        percentage_value : integer;
+        bits             : integer
+    ) return unsigned is
+        variable max_val   : real;
+        variable duty_real : real; 
+        variable duty_int  : integer; 
+    begin
+        max_val := (2.0**real(bits)) - 1.0;
+        duty_real := (real(percentage_value) / 100.0) * max_val;
+        duty_int := integer(round(duty_real));
+        return to_unsigned(duty_int, bits);
+        
+    end function compute_duty_cycle;
+
+end drone_utils_pkg;
