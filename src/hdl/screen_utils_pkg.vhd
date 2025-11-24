@@ -122,6 +122,10 @@ package screen_utils_pkg is
     constant C_ANODE_OFF : std_logic_vector(3 downto 0) := "1111";
 
     component display_controller is
+        generic (
+            G_REFRESH_PER_DIGIT_MS: positive := 1;          -- 1ms by default
+            G_CLK_FREQ_HZ         : positive := 100_000_000 -- 100 MHz by default
+        );
         port (
             i_clk     : in std_logic;
             i_reset   : in std_logic;
