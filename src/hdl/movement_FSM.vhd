@@ -31,143 +31,137 @@
 -- Additional Comments:
 -- 
 -----------------------------------------------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
 
-
-library ieee;
-use ieee.std_logic_1164.all;
-
-library work;
-use work.control_pkg.all;
-
-
-entity movement_FSM is
-    generic (
-        G_BLACK_LINE: std_logic := '1' -- specify the value which color sensors
-                                       -- provide when the black color is detected.
-                                       -- logic 1 by default 
+LIBRARY work;
+USE work.control_pkg.ALL;
+ENTITY movement_FSM IS
+    GENERIC (
+        G_BLACK_LINE : STD_LOGIC := '1' -- specify the value which color sensors
+        -- provide when the black color is detected.
+        -- logic 1 by default 
     );
-    port (
-        i_clk        : in  std_logic;
-        i_rst_n      : in  std_logic;
-        i_is_running : in  std_logic;
-        i_sensor_l   : in  std_logic;
-        i_sensor_r   : in  std_logic;
-        o_pwm_enb    : out std_logic;
-        o_motor_l_pwm: out t_pwm_duty_cycle;
-        o_motor_r_pwm: out t_pwm_duty_cycle
+    PORT (
+        i_clk : IN STD_LOGIC;
+        i_rst_n : IN STD_LOGIC;
+        i_is_running : IN STD_LOGIC;
+        i_sensor_l : IN STD_LOGIC;
+        i_sensor_r : IN STD_LOGIC;
+        o_pwm_enb : OUT STD_LOGIC;
+        o_motor_l_pwm : OUT t_pwm_duty_cycle;
+        o_motor_r_pwm : OUT t_pwm_duty_cycle
     );
-end; -- end of the entity
-
-
-architecture rtl of movement_FSM is
+END; -- end of the entity
+ARCHITECTURE rtl OF movement_FSM IS
     -- type t_pwm_duty_cycle is (DUTY_CYCLE_0, DUTY_CYCLE_15, DUTY_CYCLE_50, DUTY_CYCLE_90);
-    type t_state is (IDLE, FORWARD, T_LEFT, T_RIGHT);
+    TYPE t_state IS (IDLE, FORWARD, T_LEFT, T_RIGHT);
 
-    signal curr_state           : t_state;
+    SIGNAL curr_state : t_state;
     -- metastability protection for asynchornous signals coming from sensors
-    signal s_sensor_l_d_flipflop: std_logic_vector(1 downto 0);
-    signal s_sensor_r_d_flipflop: std_logic_vector(1 downto 0);
+    SIGNAL s_sensor_l_d_flipflop : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    SIGNAL s_sensor_r_d_flipflop : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
-    alias safe_sensor_l         : std_logic is s_sensor_l_d_flipflop(1);
-    alias safe_sensor_r         : std_logic is s_sensor_r_d_flipflop(1);
-begin
+    ALIAS safe_sensor_l : STD_LOGIC IS s_sensor_l_d_flipflop(1);
+    ALIAS safe_sensor_r : STD_LOGIC IS s_sensor_r_d_flipflop(1);
+BEGIN
 
-    sensors_acq_process : process (i_clk, i_rst_n) is
-    begin
-        if (i_rst_n = '0') then
-            s_sensor_l_d_flipflop <= (others => '0');
-            s_sensor_r_d_flipflop <= (others => '0');
-        elsif rising_edge(i_clk) then
+    sensors_acq_process : PROCESS (i_clk, i_rst_n) IS
+    BEGIN
+        IF (i_rst_n = '0') THEN
+            s_sensor_l_d_flipflop <= (OTHERS => '0');
+            s_sensor_r_d_flipflop <= (OTHERS => '0');
+        ELSIF rising_edge(i_clk) THEN
             -- capture values from left and right sensors
             s_sensor_l_d_flipflop(0) <= i_sensor_l;
             s_sensor_l_d_flipflop(1) <= s_sensor_l_d_flipflop(0);
 
             s_sensor_r_d_flipflop(0) <= i_sensor_r;
             s_sensor_r_d_flipflop(1) <= s_sensor_r_d_flipflop(0);
-        end if;
-    end process sensors_acq_process;
+        END IF;
+    END PROCESS sensors_acq_process;
 
-    movement_state_process : process (i_clk, i_rst_n) is
-        constant BLACK : std_logic := G_BLACK_LINE;
-        constant WHITE : std_logic := not G_BLACK_LINE;
-    begin
-        if (i_rst_n = '0') then
+    movement_state_process : PROCESS (i_clk, i_rst_n) IS
+        CONSTANT BLACK : STD_LOGIC := G_BLACK_LINE;
+        CONSTANT WHITE : STD_LOGIC := NOT G_BLACK_LINE;
+    BEGIN
+        IF (i_rst_n = '0') THEN
             curr_state <= IDLE;
-        elsif rising_edge(i_clk) then
-            case curr_state is
-                when IDLE    =>
+        ELSIF rising_edge(i_clk) THEN
+            CASE curr_state IS
+                WHEN IDLE =>
                     -- o_pwm_enb      <= '0';
-                    if (i_is_running = '1') then
+                    IF (i_is_running = '1') THEN
                         curr_state <= FORWARD;
-                    else 
+                    ELSE
                         curr_state <= IDLE;
-                    end if;
+                    END IF;
 
-                when FORWARD =>
-                    if (i_is_running = '1') then 
-                        if (safe_sensor_l = WHITE) and (safe_sensor_r = BLACK) then
+                WHEN FORWARD =>
+                    IF (i_is_running = '1') THEN
+                        IF (safe_sensor_l = WHITE) AND (safe_sensor_r = BLACK) THEN
                             curr_state <= T_LEFT;
-                        elsif (safe_sensor_l = BLACK) and (safe_sensor_r = WHITE) then
+                        ELSIF (safe_sensor_l = BLACK) AND (safe_sensor_r = WHITE) THEN
                             curr_state <= T_RIGHT;
-                        else -- "00"
+                        ELSE -- "00"
                             curr_state <= FORWARD; -- stay moving forward
-                        end if;
-                    else
-                        curr_state     <= IDLE;
-                    end if;
+                        END IF;
+                    ELSE
+                        curr_state <= IDLE;
+                    END IF;
 
-                when T_LEFT   =>
-                    if (i_is_running = '1') then
-                        if (safe_sensor_l = WHITE) and (safe_sensor_r = WHITE) then
+                WHEN T_LEFT =>
+                    IF (i_is_running = '1') THEN
+                        IF (safe_sensor_l = WHITE) AND (safe_sensor_r = WHITE) THEN
                             curr_state <= FORWARD;
-                        elsif (safe_sensor_l = BLACK) and (safe_sensor_r = WHITE) then
+                        ELSIF (safe_sensor_l = BLACK) AND (safe_sensor_r = WHITE) THEN
                             curr_state <= T_RIGHT;
-                        else -- "10"
+                        ELSE -- "10"
                             curr_state <= T_LEFT; -- stay turning to the left
-                        end if;
-                    else
-                        curr_state     <= IDLE;
-                    end if;
+                        END IF;
+                    ELSE
+                        curr_state <= IDLE;
+                    END IF;
 
-                when T_RIGHT   =>
-                    if (i_is_running = '1') then
-                        if (safe_sensor_l = WHITE) and (safe_sensor_r = WHITE) then
+                WHEN T_RIGHT =>
+                    IF (i_is_running = '1') THEN
+                        IF (safe_sensor_l = WHITE) AND (safe_sensor_r = WHITE) THEN
                             curr_state <= FORWARD;
-                        elsif (safe_sensor_l = WHITE) and (safe_sensor_r = BLACK) then
+                        ELSIF (safe_sensor_l = WHITE) AND (safe_sensor_r = BLACK) THEN
                             curr_state <= T_LEFT;
-                        else -- "01"
+                        ELSE -- "01"
                             curr_state <= T_RIGHT; -- stay turning to the right
-                        end if;
-                    else
-                        curr_state     <= IDLE;
-                    end if;
-                end case;
-        end if;
-    end process movement_state_process;
+                        END IF;
+                    ELSE
+                        curr_state <= IDLE;
+                    END IF;
+            END CASE;
+        END IF;
+    END PROCESS movement_state_process;
 
-    pwm_control_process : process (curr_state) is
-    begin
-        case curr_state is
-            when IDLE    =>
-                o_pwm_enb     <= '0';
+    pwm_control_process : PROCESS (curr_state) IS
+    BEGIN
+        CASE curr_state IS
+            WHEN IDLE =>
+                o_pwm_enb <= '0';
                 o_motor_l_pwm <= DUTY_CYCLE_0;
                 o_motor_r_pwm <= DUTY_CYCLE_0;
-            
-            when FORWARD =>
-                o_pwm_enb     <= '1';
+
+            WHEN FORWARD =>
+                o_pwm_enb <= '1';
                 o_motor_l_pwm <= DUTY_CYCLE_50;
                 o_motor_r_pwm <= DUTY_CYCLE_50;
 
-            when T_LEFT  =>
-                o_pwm_enb     <= '1';
+            WHEN T_LEFT =>
+                o_pwm_enb <= '1';
                 o_motor_l_pwm <= DUTY_CYCLE_90;
                 o_motor_r_pwm <= DUTY_CYCLE_15;
 
-            when T_RIGHT =>
-                o_pwm_enb     <= '1';
+            WHEN T_RIGHT =>
+                o_pwm_enb <= '1';
                 o_motor_l_pwm <= DUTY_CYCLE_15;
                 o_motor_r_pwm <= DUTY_CYCLE_90;
-        end case;
-    end process pwm_control_process;
+        END CASE;
+    END PROCESS pwm_control_process;
 
-end rtl;
+END rtl;

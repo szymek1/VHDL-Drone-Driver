@@ -35,67 +35,61 @@
 -- Additional Comments:
 -- 
 -----------------------------------------------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+ENTITY pwm IS
+    GENERIC (
+        G_PWM_BITS : INTEGER; -- specifies the resolution
+        -- if equal to 8 bits the PWM counter will
+        -- count from 0 to 255
 
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-
-entity pwm is
-    generic (
-        G_PWM_BITS: integer;        -- specifies the resolution
-                                    -- if equal to 8 bits the PWM counter will
-                                    -- count from 0 to 255
-
-        G_CLK_DIV : positive := 78  -- clock divider, it specifies how many
-                                    -- "fast clk ticks" equal one "slow clk tick"
-                                    -- set by default to the value allowing to 
-                                    -- create 5kHz signal from 100MHz clock
+        G_CLK_DIV : POSITIVE := 78 -- clock divider, it specifies how many
+        -- "fast clk ticks" equal one "slow clk tick"
+        -- set by default to the value allowing to 
+        -- create 5kHz signal from 100MHz clock
     );
-    port (
-            i_clk           : in  std_logic;
-            i_rst_n         : in  std_logic;
-            i_enb           : in  std_logic; -- when set high the PWM signal will be generated
-            i_duty_cycle    : in  unsigned(G_PWM_BITS - 1 downto 0);
-            o_pwm           : out std_logic;
-            o_pwm_cnt       : out unsigned(G_PWM_BITS - 1 downto 0)
-        );
-end; -- end of the entity
-
-
-architecture rtl of pwm is
-    signal clk_cnt: integer range 0 to G_CLK_DIV - 1;
-begin
-    clk_divider_process : process (i_clk, i_rst_n) is
-    begin
-        if (i_rst_n = '0') then
+    PORT (
+        i_clk : IN STD_LOGIC;
+        i_rst_n : IN STD_LOGIC;
+        i_enb : IN STD_LOGIC; -- when set high the PWM signal will be generated
+        i_duty_cycle : IN unsigned(G_PWM_BITS - 1 DOWNTO 0);
+        o_pwm : OUT STD_LOGIC;
+        o_pwm_cnt : OUT unsigned(G_PWM_BITS - 1 DOWNTO 0)
+    );
+END; -- end of the entity
+ARCHITECTURE rtl OF pwm IS
+    SIGNAL clk_cnt : INTEGER RANGE 0 TO G_CLK_DIV - 1;
+BEGIN
+    clk_divider_process : PROCESS (i_clk, i_rst_n) IS
+    BEGIN
+        IF (i_rst_n = '0') THEN
             clk_cnt <= 0;
-        elsif rising_edge(i_clk) then
-            if clk_cnt < G_CLK_DIV - 1 then
+        ELSIF rising_edge(i_clk) THEN
+            IF clk_cnt < G_CLK_DIV - 1 THEN
                 clk_cnt <= clk_cnt + 1;
-            else
+            ELSE
                 clk_cnt <= 0;
-            end if;
-        end if;
-    end process clk_divider_process;
+            END IF;
+        END IF;
+    END PROCESS clk_divider_process;
 
-    pwm_process : process (i_clk, i_rst_n) is
-        variable internal_pwm_cnt: unsigned(G_PWM_BITS - 1 downto 0); -- added to comply
-                                                                      -- Vivado VHDL 2001, which doesn't allow for 
-                                                                      -- reading from out port, thus this variable was created
-                                                                      -- to mitgate that
-    begin
-        if (i_rst_n = '0') then
-            o_pwm            <= '0';
-            o_pwm_cnt        <= (others => '0');
-            internal_pwm_cnt := (others => '0');
-        elsif rising_edge(i_clk) then
-            if (i_enb = '1') then
-                if (G_CLK_DIV = 1 or clk_cnt = 0) then
-                    o_pwm_cnt        <= internal_pwm_cnt + 1;
+    pwm_process : PROCESS (i_clk, i_rst_n) IS
+        VARIABLE internal_pwm_cnt : unsigned(G_PWM_BITS - 1 DOWNTO 0); -- added to comply
+        -- Vivado VHDL 2001, which doesn't allow for 
+        -- reading from out port, thus this variable was created
+        -- to mitgate that
+    BEGIN
+        IF (i_rst_n = '0') THEN
+            o_pwm <= '0';
+            o_pwm_cnt <= (OTHERS => '0');
+            internal_pwm_cnt := (OTHERS => '0');
+        ELSIF rising_edge(i_clk) THEN
+            IF (i_enb = '1') THEN
+                IF (G_CLK_DIV = 1 OR clk_cnt = 0) THEN
+                    o_pwm_cnt <= internal_pwm_cnt + 1;
                     internal_pwm_cnt := internal_pwm_cnt + 1;
-                    o_pwm            <= '0';
+                    o_pwm <= '0';
 
                     -- The if-conditions below solves the issues of PWM with duty cycle
                     -- of 100%. It checks for the second largest usigned value and effectively
@@ -105,20 +99,20 @@ begin
                     -- the line unsigned(to_signed(-2, o_pwm_cnt'length) produces 8-bit long signed -2 but
                     -- interprets it as unsigned. -2 in binary is 11111110 and when interpreted as unsigned
                     -- it is exactly 254.
-                    if internal_pwm_cnt = unsigned(to_signed(-2, o_pwm_cnt'length)) then
-                        o_pwm_cnt <= (others => '0');
-                    end if;
+                    IF internal_pwm_cnt = unsigned(to_signed(-2, o_pwm_cnt'length)) THEN
+                        o_pwm_cnt <= (OTHERS => '0');
+                    END IF;
 
-                    if (internal_pwm_cnt < i_duty_cycle) then
-                        o_pwm     <= '1';
-                    end if;
-                end if;
-            else
-                o_pwm            <= '0';
-                o_pwm_cnt        <= (others => '0');
-                internal_pwm_cnt := (others => '0');
-            end if;
-        end if;
-    end process pwm_process;
+                    IF (internal_pwm_cnt < i_duty_cycle) THEN
+                        o_pwm <= '1';
+                    END IF;
+                END IF;
+            ELSE
+                o_pwm <= '0';
+                o_pwm_cnt <= (OTHERS => '0');
+                internal_pwm_cnt := (OTHERS => '0');
+            END IF;
+        END IF;
+    END PROCESS pwm_process;
 
-end rtl;
+END rtl;

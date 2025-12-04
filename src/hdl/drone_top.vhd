@@ -17,158 +17,152 @@
 -- Additional Comments:
 -- 
 -----------------------------------------------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
 
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-library work;
-use work.drone_utils_pkg.all;
-use work.control_pkg.all;
-
-
-entity drone_top is 
-    port (
-        Clock         : in std_logic;
-        BP_start_stop : in std_logic;
+LIBRARY work;
+USE work.drone_utils_pkg.ALL;
+USE work.control_pkg.ALL;
+ENTITY drone_top IS
+    PORT (
+        Clock : IN STD_LOGIC;
+        BP_start_stop : IN STD_LOGIC;
         -- btnU          : in std_logic;  -- reset
-        Bumper_G      : in std_logic;  -- left sensor
-        Bumper_D      : in std_logic;  -- right sensor
-        PWM_G_pos     : out std_logic; -- left motor PWM output +
-        PWM_G_neg     : out std_logic; -- left motor PWM output -
-        PWM_D_pos     : out std_logic; -- right motor PWM output +
-        PWM_D_neg     : out std_logic -- right motor PWM output -
+        Bumper_G : IN STD_LOGIC; -- left sensor
+        Bumper_D : IN STD_LOGIC; -- right sensor
+        PWM_G_pos : OUT STD_LOGIC; -- left motor PWM output +
+        PWM_G_neg : OUT STD_LOGIC; -- left motor PWM output -
+        PWM_D_pos : OUT STD_LOGIC; -- right motor PWM output +
+        PWM_D_neg : OUT STD_LOGIC -- right motor PWM output -
     );
-end; -- end of the entity
-
-
-architecture rtl of drone_top is
+END; -- end of the entity
+ARCHITECTURE rtl OF drone_top IS
     -- Constants 
     -- PWM
-    constant C_PWM_ENB             : std_logic := '1';
-    constant C_PWM_RESOLUTION_BITS : positive := 8;
-    constant C_DUTY_0_PCNT         : unsigned(C_PWM_RESOLUTION_BITS - 1 downto 0) := compute_duty_cycle(0,   C_PWM_RESOLUTION_BITS);
-    constant C_DUTY_15_PCNT        : unsigned(C_PWM_RESOLUTION_BITS - 1 downto 0) := compute_duty_cycle(15,  C_PWM_RESOLUTION_BITS);
-    constant C_DUTY_50_PCNT        : unsigned(C_PWM_RESOLUTION_BITS - 1 downto 0) := compute_duty_cycle(50,  C_PWM_RESOLUTION_BITS);
-    constant C_DUTY_90_PCNT        : unsigned(C_PWM_RESOLUTION_BITS - 1 downto 0) := compute_duty_cycle(90,  C_PWM_RESOLUTION_BITS);
+    CONSTANT C_PWM_ENB : STD_LOGIC := '1';
+    CONSTANT C_PWM_RESOLUTION_BITS : POSITIVE := 8;
+    CONSTANT C_DUTY_0_PCNT : unsigned(C_PWM_RESOLUTION_BITS - 1 DOWNTO 0) := compute_duty_cycle(0, C_PWM_RESOLUTION_BITS);
+    CONSTANT C_DUTY_15_PCNT : unsigned(C_PWM_RESOLUTION_BITS - 1 DOWNTO 0) := compute_duty_cycle(15, C_PWM_RESOLUTION_BITS);
+    CONSTANT C_DUTY_50_PCNT : unsigned(C_PWM_RESOLUTION_BITS - 1 DOWNTO 0) := compute_duty_cycle(50, C_PWM_RESOLUTION_BITS);
+    CONSTANT C_DUTY_90_PCNT : unsigned(C_PWM_RESOLUTION_BITS - 1 DOWNTO 0) := compute_duty_cycle(90, C_PWM_RESOLUTION_BITS);
     -- RST_N: assume no internal reset
-    constant C_RST_N               : std_logic := '1';
+    CONSTANT C_RST_N : STD_LOGIC := '1';
 
     -- Signals
     -- Button debouncer and edge detector
-    signal s_btn_debounced  : std_logic;
-    signal s_edge_detected  : std_logic;
+    SIGNAL s_btn_debounced : STD_LOGIC;
+    SIGNAL s_edge_detected : STD_LOGIC;
     -- FSMs
-    signal s_is_running     : std_logic;
-    signal s_fsm_cmd_left   : t_pwm_duty_cycle;
-    signal s_fsm_cmd_right  : t_pwm_duty_cycle;
+    SIGNAL s_is_running : STD_LOGIC;
+    SIGNAL s_fsm_cmd_left : t_pwm_duty_cycle;
+    SIGNAL s_fsm_cmd_right : t_pwm_duty_cycle;
     -- PWM decoder
-    signal s_pwm_duty_left  : unsigned(C_PWM_RESOLUTION_BITS - 1 downto 0);
-    signal s_pwm_duty_right : unsigned(C_PWM_RESOLUTION_BITS - 1 downto 0);
-    signal s_pwm_out_left   : std_logic;
-    signal s_pwm_out_right  : std_logic;
-begin
+    SIGNAL s_pwm_duty_left : unsigned(C_PWM_RESOLUTION_BITS - 1 DOWNTO 0);
+    SIGNAL s_pwm_duty_right : unsigned(C_PWM_RESOLUTION_BITS - 1 DOWNTO 0);
+    SIGNAL s_pwm_out_left : STD_LOGIC;
+    SIGNAL s_pwm_out_right : STD_LOGIC;
+BEGIN
 
-    U_BTN_DEBOUNCER : entity work.btn_debouncer
-        generic map (
+    U_BTN_DEBOUNCER : ENTITY work.btn_debouncer
+        GENERIC MAP(
             G_DEBOUNCE_TIMEOUT_MS => C_DEBOUNCE_TIMEOUT_MS,
-            G_CLK_FREQ_HZ         => C_BASYS3_SYSCLK_HZ
+            G_CLK_FREQ_HZ => C_BASYS3_SYSCLK_HZ
         )
-        port map (
-            i_clk           => Clock,
-            i_rst_n         => C_RST_N,
-            i_btn           => BP_start_stop,
+        PORT MAP(
+            i_clk => Clock,
+            i_rst_n => C_RST_N,
+            i_btn => BP_start_stop,
             o_btn_debounced => s_btn_debounced
         );
 
-    U_EDGE_DETECT : entity work.edge_detector
-        generic map (
+    U_EDGE_DETECT : ENTITY work.edge_detector
+        GENERIC MAP(
             G_RISING_EDGE => true
         )
-        port map (
-            i_clk     => Clock,
-            i_rst_n   => C_RST_N,
-            i_signal  => s_btn_debounced,
-            o_edge    => s_edge_detected
+        PORT MAP(
+            i_clk => Clock,
+            i_rst_n => C_RST_N,
+            i_signal => s_btn_debounced,
+            o_edge => s_edge_detected
         );
 
-    U_START_STOP_FSM : entity work.start_stop_FSM
-        port map (
-            i_clk         => Clock,
-            i_rst_n       => C_RST_N,
+    U_START_STOP_FSM : ENTITY work.start_stop_FSM
+        PORT MAP(
+            i_clk => Clock,
+            i_rst_n => C_RST_N,
             i_btn_pressed => s_edge_detected,
-            o_is_running  => s_is_running
+            o_is_running => s_is_running
         );
 
-    U_MOVEMENT_FSM : entity work.movement_FSM
-        generic map (
+    U_MOVEMENT_FSM : ENTITY work.movement_FSM
+        GENERIC MAP(
             G_BLACK_LINE => '1'
         )
-        port map (
-            i_clk         => Clock,
-            i_rst_n       => C_RST_N,
-            i_is_running  => s_is_running,
-            i_sensor_l    => Bumper_G, -- 'G' (gauche) to 'left'
-            i_sensor_r    => Bumper_D, -- 'D' (droit) to 'right'
-            o_pwm_enb     => open,
+        PORT MAP(
+            i_clk => Clock,
+            i_rst_n => C_RST_N,
+            i_is_running => s_is_running,
+            i_sensor_l => Bumper_G, -- 'G' (gauche) to 'left'
+            i_sensor_r => Bumper_D, -- 'D' (droit) to 'right'
+            o_pwm_enb => OPEN,
             o_motor_l_pwm => s_fsm_cmd_left,
             o_motor_r_pwm => s_fsm_cmd_right
         );
 
     -- Decoding FSM commands and generating the final PWM signal
-    p_pwm_decoder : process (s_fsm_cmd_left, s_fsm_cmd_right) is
-    begin
+    p_pwm_decoder : PROCESS (s_fsm_cmd_left, s_fsm_cmd_right) IS
+    BEGIN
         -- left motor command
-        case s_fsm_cmd_left is
-            when DUTY_CYCLE_0   => s_pwm_duty_left <= C_DUTY_0_PCNT;
-            when DUTY_CYCLE_15  => s_pwm_duty_left <= C_DUTY_15_PCNT;
-            when DUTY_CYCLE_50  => s_pwm_duty_left <= C_DUTY_50_PCNT;
-            when DUTY_CYCLE_90  => s_pwm_duty_left <= C_DUTY_90_PCNT;
-        end case;
-        
-        -- right motor command
-        case s_fsm_cmd_right is
-            when DUTY_CYCLE_0   => s_pwm_duty_right <= C_DUTY_0_PCNT;
-            when DUTY_CYCLE_15  => s_pwm_duty_right <= C_DUTY_15_PCNT;
-            when DUTY_CYCLE_50  => s_pwm_duty_right <= C_DUTY_50_PCNT;
-            when DUTY_CYCLE_90  => s_pwm_duty_right <= C_DUTY_90_PCNT;
-        end case;
-    end process p_pwm_decoder;
+        CASE s_fsm_cmd_left IS
+            WHEN DUTY_CYCLE_0 => s_pwm_duty_left <= C_DUTY_0_PCNT;
+            WHEN DUTY_CYCLE_15 => s_pwm_duty_left <= C_DUTY_15_PCNT;
+            WHEN DUTY_CYCLE_50 => s_pwm_duty_left <= C_DUTY_50_PCNT;
+            WHEN DUTY_CYCLE_90 => s_pwm_duty_left <= C_DUTY_90_PCNT;
+        END CASE;
 
-    U_PWM_LEFT : entity work.pwm
-        generic map (
+        -- right motor command
+        CASE s_fsm_cmd_right IS
+            WHEN DUTY_CYCLE_0 => s_pwm_duty_right <= C_DUTY_0_PCNT;
+            WHEN DUTY_CYCLE_15 => s_pwm_duty_right <= C_DUTY_15_PCNT;
+            WHEN DUTY_CYCLE_50 => s_pwm_duty_right <= C_DUTY_50_PCNT;
+            WHEN DUTY_CYCLE_90 => s_pwm_duty_right <= C_DUTY_90_PCNT;
+        END CASE;
+    END PROCESS p_pwm_decoder;
+
+    U_PWM_LEFT : ENTITY work.pwm
+        GENERIC MAP(
             G_PWM_BITS => C_PWM_RESOLUTION_BITS,
-            G_CLK_DIV  => 78 -- ~5kHz from 100MHz / 255 steps
+            G_CLK_DIV => 78 -- ~5kHz from 100MHz / 255 steps
         )
-        port map (
-            i_clk        => Clock,
-            i_rst_n      => C_RST_N,
-            i_enb        => s_is_running, -- PWMs are only on when FSM is running
+        PORT MAP(
+            i_clk => Clock,
+            i_rst_n => C_RST_N,
+            i_enb => s_is_running, -- PWMs are only on when FSM is running
             i_duty_cycle => s_pwm_duty_left,
-            o_pwm        => s_pwm_out_left,
-            o_pwm_cnt    => open          -- debug port, not needed here
+            o_pwm => s_pwm_out_left,
+            o_pwm_cnt => OPEN -- debug port, not needed here
         );
-        
-    U_PWM_RIGHT : entity work.pwm
-        generic map (
+
+    U_PWM_RIGHT : ENTITY work.pwm
+        GENERIC MAP(
             G_PWM_BITS => C_PWM_RESOLUTION_BITS,
-            G_CLK_DIV  => 78
+            G_CLK_DIV => 78
         )
-        port map (
-            i_clk        => Clock,
-            i_rst_n      => C_RST_N,
-            i_enb        => s_is_running,
+        PORT MAP(
+            i_clk => Clock,
+            i_rst_n => C_RST_N,
+            i_enb => s_is_running,
             i_duty_cycle => s_pwm_duty_right,
-            o_pwm        => s_pwm_out_right,
-            o_pwm_cnt    => open
+            o_pwm => s_pwm_out_right,
+            o_pwm_cnt => OPEN
         );
 
     -- left Motor
     PWM_G_pos <= s_pwm_out_left;
     PWM_G_neg <= '0';
-    
+
     -- right Motor
     PWM_D_pos <= s_pwm_out_right;
     PWM_D_neg <= '0';
-end rtl;
+END rtl;

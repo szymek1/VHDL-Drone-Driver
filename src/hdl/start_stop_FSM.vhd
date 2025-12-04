@@ -21,53 +21,47 @@
 -- Additional Comments:
 -- 
 -----------------------------------------------------------------------------------
-
-
-library ieee;
-use ieee.std_logic_1164.all;
-
-
-entity start_stop_FSM is
-    port (
-        i_clk        : in  std_logic;
-        i_rst_n      : in  std_logic;
-        i_btn_pressed: in  std_logic; -- provided by edge_detector
-        o_is_running : out std_logic
-        );
-end; -- end of the entity
-
-
-architecture rtl of start_stop_FSM is 
-    type t_state is (IDLE, RUNNING);
-    signal curr_state: t_state;
-    signal is_running: std_logic; -- internal value for indicating that the machine is running
-begin
-    start_stop_FSM_process : process (i_clk, i_rst_n) is
-    begin
-        if (i_rst_n = '0') then
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+ENTITY start_stop_FSM IS
+    PORT (
+        i_clk : IN STD_LOGIC;
+        i_rst_n : IN STD_LOGIC;
+        i_btn_pressed : IN STD_LOGIC; -- provided by edge_detector
+        o_is_running : OUT STD_LOGIC
+    );
+END; -- end of the entity
+ARCHITECTURE rtl OF start_stop_FSM IS
+    TYPE t_state IS (IDLE, RUNNING);
+    SIGNAL curr_state : t_state;
+    SIGNAL is_running : STD_LOGIC; -- internal value for indicating that the machine is running
+BEGIN
+    start_stop_FSM_process : PROCESS (i_clk, i_rst_n) IS
+    BEGIN
+        IF (i_rst_n = '0') THEN
             curr_state <= IDLE;
             is_running <= '0';
-        elsif rising_edge(i_clk) then
-            case curr_state is 
-                when IDLE   =>
-                    if (i_btn_pressed = '1') then
+        ELSIF rising_edge(i_clk) THEN
+            CASE curr_state IS
+                WHEN IDLE =>
+                    IF (i_btn_pressed = '1') THEN
                         curr_state <= RUNNING;
-                    else 
+                    ELSE
                         curr_state <= IDLE;
                         is_running <= '0';
-                    end if;
+                    END IF;
 
-                when RUNNING =>
-                    if (i_btn_pressed = '1') then
+                WHEN RUNNING =>
+                    IF (i_btn_pressed = '1') THEN
                         curr_state <= IDLE;
-                    else 
+                    ELSE
                         curr_state <= RUNNING;
                         is_running <= '1';
-                    end if;
-            end case;
-        end if;
-    end process start_stop_FSM_process;
+                    END IF;
+            END CASE;
+        END IF;
+    END PROCESS start_stop_FSM_process;
 
     -- concurrent assigment of is_running
     o_is_running <= is_running;
-end rtl; -- end of the architecture
+END rtl; -- end of the architecture
