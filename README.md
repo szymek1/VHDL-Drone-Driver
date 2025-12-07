@@ -146,43 +146,30 @@ generic (
 
 
 ## Project's Structure
-The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
-```
-.
-├── bin
-├── log
-├── Makefile
-├── dep_analyzer.py
-├── scripts
-│   ├── build.tcl
-│   ├── program_board.tcl
-│   └── simulate.tcl
-├── simulation
-│   └── waveforms
-└── src
-    ├── constraints
-    │   └── constraints.xdc
-    ├── hdl
-    │   └── top.v
-    └── sim
-        ├── top_tb.v 
-```
-- ```bin/```: stores compiled bitstream and netlists
-- ```log/```: stores logs produced by each of TCL scripts
-- ```scripts/```: stores TCL scripts called from Makefile
-- ```simulation/```: stores simulation results and logs per run testbench
+The project consists of the following directories:
+- ```build/```: stores ghdl relevant build files when targets execute 
+- ```log/```: stores logs produced by each target
+- ```scripts/```: stores TCL scripts called from Makefile (**TODO** for Vivado batch mode integrations)
+- ```simulation/```: stores simulation results per run testbench
 - ```src/```: stores HDL and tesbenches source code as well as constraint file
 
-There is one main Makefile specyfying all the targets and the target platform.
-
 ## Usage
-For detailed build environment instruction please refer to [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
+There is one main Makefile specyfying all the targets. The simulation assumes using [GHDL](https://github.com/ghdl/ghdl). User can run a single testbench or all of them at once.
 
-The key component is the Makefile from the root directory. The following targets can executed:
+1. Single testbench: ```make <tb_name>```
+2. All testbenches: ```make all```, this implementation supports parallel execution so it is possible to do for example: ```make -j4 all```
 
- ```make conf```: checks, if all direcotires exist and instantiates them in case some are missing
-- ```make sim_all```: runs all availabele testbenches which are stored inside ```src/sim/```-> each tesbench will have a separate direcotry inside ```simulation/waveforms```
-- ```make sim_sel TB="..."```: runs only selected (one or multiple) tesbenches and stores their results inside ```simulation/waveforms```. ***use quote marks to place multiple tesbenches, use only module names!***
-- ```make bit```: generates bitstream and netlist which are stored respectively inside ```bin/bit``` and ```bin/netlist```
-- ```make program_fpga```: programs an FPGA device according to ```device``` field from the Makefile
-- ```make clean```: clears ```bin/``` and ```log/``` directories. ***its doesn't clear ```simulation/```***
+Due to the implementation of ghdl imports via ```ghdl -i...``` by default ghdl will try to import all the files listed inside ```src/hdl/``` this includes the files which might be buggy or incomplete. User can exclude them by editing the Makefile:
+```make
+IGNORE_SRCS := \
+    $(SRC_DIR)/buggy_file.vhd \
+	$(SRC_DIR)/incomplete_file.vhd
+```
+
+After succesfull execution of a testbench its results are stored inside: ```simulation/tb_name``` as ```*.vcd``` files. Inside ```log/tb_name``` there are simulation logs per testbench and in ```build/tb_name``` there are some build artefacts.
+
+# TODO
+
+- enable Vivado based compilation using TCL scripts
+- enable Vivad batch mode build and device flash 
+- push such changes and modify my other project which tries that for Verilog- [the project](https://github.com/szymek1/FPGA-TCL-Makefile-template)
