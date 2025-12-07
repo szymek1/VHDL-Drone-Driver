@@ -21,7 +21,7 @@
 
 GHDL        := ghdl
 FLAGS       := --std=08
-# Base directory for builds (we will create subdirs inside this)
+
 BUILD_ROOT  := build
 SRC_DIR     := src/hdl
 SIM_DIR     := src/sim
