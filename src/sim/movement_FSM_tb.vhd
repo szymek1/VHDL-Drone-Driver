@@ -19,10 +19,12 @@
 -----------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE std.env.finish;
 
 LIBRARY work;
 USE work.drone_utils_pkg.ALL;
 USE work.control_pkg.ALL;
+
 ENTITY movement_FSM_tb IS
 END; -- end of entity
 ARCHITECTURE testbench OF movement_FSM_tb IS
@@ -174,8 +176,8 @@ BEGIN
         -- FSM should be in IDLE state.
 
         -- end of the simulation
-        ASSERT false REPORT "Simulation has finished" SEVERITY failure;
-        WAIT; -- FIX: Added final 'wait'
+        REPORT "Simulaiton has finished";
+        finish;
 
     END PROCESS test_process;
 

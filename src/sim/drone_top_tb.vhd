@@ -21,10 +21,12 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 USE ieee.math_real.ALL;
+USE std.env.finish;
 
 LIBRARY work;
 USE work.drone_utils_pkg.ALL;
 USE work.control_pkg.ALL;
+
 ENTITY drone_top_tb IS
 END ENTITY drone_top_tb;
 ARCHITECTURE testbench OF drone_top_tb IS
@@ -126,9 +128,8 @@ BEGIN
         -- FSM should be in IDLE state. Motors should be OFF.
 
         -- end of the simulation
-        REPORT "Simulation has finished" SEVERITY note;
-        ASSERT false REPORT "Simulation finished." SEVERITY failure;
-        WAIT;
+        REPORT "Simulaiton has finished";
+        finish;
 
     END PROCESS test_process;
 

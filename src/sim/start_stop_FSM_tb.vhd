@@ -19,10 +19,12 @@
 -----------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE std.env.finish;
 
 LIBRARY work;
 USE work.drone_utils_pkg.ALL;
 USE work.control_pkg.ALL;
+
 ENTITY start_stop_FSM_tb IS
 END; -- end of entity
 ARCHITECTURE testbench OF start_stop_FSM_tb IS
@@ -109,8 +111,9 @@ BEGIN
         WAIT FOR (C_CORRECT_DEBOUNCE_CLK_TICKS + 10) * C_BASYS3_SYSCLK_NS;
 
         -- end of the simulation
-        WAIT FOR 5 * C_BASYS3_SYSCLK_NS;
-        ASSERT false REPORT "Simulation has finished" SEVERITY failure;
+        REPORT "Simulaiton has finished";
+        finish;
+
     END PROCESS test_process;
 
 END testbench;

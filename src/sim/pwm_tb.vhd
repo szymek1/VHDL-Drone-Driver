@@ -20,6 +20,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
+USE std.env.finish;
 
 LIBRARY work;
 USE work.drone_utils_pkg.ALL;
@@ -81,7 +82,9 @@ BEGIN
 
         -- end of the simulation
         WAIT FOR 5 * C_BASYS3_SYSCLK_NS;
-        ASSERT false REPORT "Simulation has finished" SEVERITY failure;
+
+        REPORT "Simulaiton has finished";
+        finish;
 
     END PROCESS test_process;
 
