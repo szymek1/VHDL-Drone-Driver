@@ -17,40 +17,36 @@
 -- Additional Comments:
 -- 
 -----------------------------------------------------------------------------------
-
-
-library ieee;
-use ieee.std_logic_1164.all;
-
-
-package control_pkg is 
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+PACKAGE control_pkg IS
     -- Start/Stop FSM
-    component start_stop_FSM is
-        port (
-            i_clk        : in  std_logic;
-            i_rst_n      : in  std_logic;
-            i_btn_pressed: in  std_logic;
-            o_is_running : out std_logic
+    COMPONENT start_stop_FSM IS
+        PORT (
+            i_clk : IN STD_LOGIC;
+            i_rst_n : IN STD_LOGIC;
+            i_btn_pressed : IN STD_LOGIC;
+            o_is_running : OUT STD_LOGIC
         );
-    end component;
+    END COMPONENT;
 
     -- Movement FSM
-    type t_pwm_duty_cycle is (DUTY_CYCLE_0, DUTY_CYCLE_15, DUTY_CYCLE_50, DUTY_CYCLE_90);
-    component movement_FSM is
-        generic (
-            G_BLACK_LINE: std_logic := '1' -- specify the value which color sensors
-                                           -- provide when the black color is detected.
-                                           -- logic 1 by default 
+    TYPE t_pwm_duty_cycle IS (DUTY_CYCLE_0, DUTY_CYCLE_15, DUTY_CYCLE_50, DUTY_CYCLE_90);
+    COMPONENT movement_FSM IS
+        GENERIC (
+            G_BLACK_LINE : STD_LOGIC := '1' -- specify the value which color sensors
+            -- provide when the black color is detected.
+            -- logic 1 by default 
         );
-        port (
-            i_clk        : in  std_logic;
-            i_rst_n      : in  std_logic;
-            i_is_running : in  std_logic;
-            i_sensor_l   : in  std_logic;
-            i_sensor_r   : in  std_logic;
-            o_pwm_enb    : out std_logic;
-            o_motor_l_pwm: out t_pwm_duty_cycle;
-            o_motor_r_pwm: out t_pwm_duty_cycle
+        PORT (
+            i_clk : IN STD_LOGIC;
+            i_rst_n : IN STD_LOGIC;
+            i_is_running : IN STD_LOGIC;
+            i_sensor_l : IN STD_LOGIC;
+            i_sensor_r : IN STD_LOGIC;
+            o_pwm_enb : OUT STD_LOGIC;
+            o_motor_l_pwm : OUT t_pwm_duty_cycle;
+            o_motor_r_pwm : OUT t_pwm_duty_cycle
         );
-    end component;
-end package control_pkg; -- end of the package
+    END COMPONENT;
+END PACKAGE control_pkg; -- end of the package

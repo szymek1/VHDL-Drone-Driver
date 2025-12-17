@@ -1,141 +1,86 @@
-# -----------------------------------------------------------------------
-# Author: Szymon Bogus
-# Date:   09.07.2025
-#
-# Description:
-# This Makefile intends to configure Xilinx FPGA project and maintain it
-# through internal TCL calls. It assumes utilization of Vivado Simulator.
-# License: GNU GPL
-# -----------------------------------------------------------------------
+####################################################################################
+# Company: ISAE
+# Engineer: Szymon Bogus
+# 
+# Create Date: 07.12.25
+# Design Name: 
+# Module Name: 
+# Project Name: drone_basys3
+# Target Devices: Basys 3
+# Tool Versions: 
+# Description: Makefile based build system using GHDL to simulate testbenches.
+#			   Run: $ make <tb_name>
+# 
+# Dependencies: for .OUTPUT_SYNC: target make 4.0+ is required
+# 
+# Revision:
+# Revision 0.01 - File Created
+# Additional Comments:
+# 
+####################################################################################
 
+GHDL        := ghdl
+FLAGS       := --std=08
 
-# This Makefile should be placed int the root directory of the project
-ROOT_DIR 	    := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+BUILD_ROOT  := build
+SRC_DIR     := src/hdl
+SIM_DIR     := src/sim
+SIM_OUT_DIR := simulation
+LOG_DIR     := log
 
-# Project's main directories
-SOURCE_DIR      := $(ROOT_DIR)/src
-SIM_DIR         := $(ROOT_DIR)/simulation
-SCRIPTS_DIR     := $(ROOT_DIR)/scripts
-LOG_DIR		    := $(ROOT_DIR)/log
-BINARIES_DIR    := $(ROOT_DIR)/bin
-DATA_DIR	    := $(ROOT_DIR)/data
+ALL_SRCS := $(wildcard $(SRC_DIR)/*.vhd)
 
-# Project's subdirectories
-HDL_DIR 	    := $(SOURCE_DIR)/hdl
-SIM_SRC_DIR     := $(SOURCE_DIR)/sim
-CONSTRAINTS_DIR := $(SOURCE_DIR)/constraints
+# Exclude files here (those which don't work; without it Make will make GHDL include them and things will fail)
+# IGNORE_SRCS := \
+#     $(SRC_DIR)/display_controller.vhd \
+# 	$(SRC_DIR)/screen_utils_pkg.vhd
 
-# Netlist and bitstream
-VVP_DIR     := $(BINARIES_DIR)/vvp
-D_DIR   := $(BINARIES_DIR)/d
-NETLIST_DIR     := $(BINARIES_DIR)/netlist
-BITSTREAM_DIR   := $(BINARIES_DIR)/bit
+# SRCS := $(filter-out $(IGNORE_SRCS), $(ALL_SRCS))
+SRCS := $(ALL_SRCS)
 
-# TCL scripts
-BUILD_TCL       := $(SCRIPTS_DIR)/build.tcl
-SIMULATE_TCL    := $(SCRIPTS_DIR)/simulate.tcl
-PROGRAM_TCL     := $(SCRIPTS_DIR)/program_board.tcl
+TBS_SRCS  := $(wildcard $(SIM_DIR)/*_tb.vhd)
+TBS_NAMES := $(basename $(notdir $(TBS_SRCS)))
 
-# Python scripts
-DEP_ANALYZER    := $(ROOT_DIR)/dep_analyzer.py
+.PHONY: all clean help
 
-# Project's details
-project_name    := drone_basys3
-top_module	    := drone_top
-language 	    := vhdl
-device 		    := xc7a35tcpg236-1
+.OUTPUT_SYNC: target
 
-VIVADO_CMD 		:= vivado -mode batch
+help:
+	@echo "Usage:"
+	@echo "  make <tb_name>     : Run specific TB"
+	@echo "  make -j<N> all     : Run all testbenches in parallel (N = num cores)"
+	@echo "  make clean         : Clean workspace"
 
-IVERILOG_FLAGS := -g2012 -Wall
+all: $(TBS_NAMES)
 
-ALL_TB_SRC := $(wildcard $(SIM_SRC_DIR)/*_tb.v)
-ALL_TB := $(ALL_TB_SRC:$(SIM_SRC_DIR)/%.v=%)
-ALL_TB_REPORT := $(ALL_TB:%=$(SIM_DIR)/%.txt)
+%_tb:
+	@# 1. Define a private build dir for this specific job to avoid GHDL collisions
+	$(eval CURRENT_WORKDIR := $(BUILD_ROOT)/$@)
+	
+	@echo "--- Starting $@ (PID: $$$$) ---"
+	
+	@mkdir -p $(CURRENT_WORKDIR)
+	@mkdir -p $(SIM_OUT_DIR)/$@
+	@mkdir -p $(LOG_DIR)/$@
 
-#
-# ================ IVERILOG ================
-#
+	@# 2. Import Sources into private workdir
+	@# We pipe output to /dev/null to keep parallel terminal output clean
+	@echo "  [$@] Importing..."
+	@$(GHDL) -i --workdir=$(CURRENT_WORKDIR) $(FLAGS) $(SRCS) $(SIM_DIR)/$@.vhd
 
-# Build TB and output convert dependencies to Makefile .d format
-.PRECIOUS: $(VVP_DIR)/%.vvp
-$(VVP_DIR)/%.vvp: $(SIM_SRC_DIR)/%.v
-	@echo "Compiling testbench \"$(@F:.vvp=)\""
-	@mkdir -p $(VVP_DIR) $(D_DIR) $(LOG_DIR)
-	@iverilog $(IVERILOG_FLAGS) \
-		-Mall=$(@:.vvp=.d.raw) -y $(HDL_DIR) -I $(<D) \
-		-DDATA_DIR=\"$(DATA_DIR)/\" \
-		-o $@ $< > $(LOG_DIR)/compile_$(@F:.vvp=).txt 2>&1
-	@{ \
-	  printf '%s:' '$@'; \
-	  sort -u $(@:.vvp=.d.raw) | tr '\n' ' '; \
-	  printf '\n'; \
-	} > $(@:$(VVP_DIR)/%.vvp=$(D_DIR)/%.d)
-	@rm $(@:.vvp=.d.raw)
+	@# 3. Compile and Elaborate
+	@echo "  [$@] Compiling..."
+	@$(GHDL) -m --workdir=$(CURRENT_WORKDIR) $(FLAGS) $@ > $(LOG_DIR)/$@/build.log 2>&1
+	
+	@# Move executable
+	@mv $@ $(SIM_OUT_DIR)/$@/ 2>/dev/null || true
 
-# Run TB and output report
-$(SIM_DIR)/%/sim_output.txt: $(VVP_DIR)/%.vvp
-	@mkdir -p $(@D)
-	@echo "Running testbench \"$(<F:.vvp=)\""
-	@cd $(@D) && vvp $< > $@ 2>&1
+	@# 4. Run Simulation
+	@echo "  [$@] Simulating..."
+	@$(GHDL) -r --workdir=$(CURRENT_WORKDIR) $(FLAGS) $@ --vcd=$(SIM_OUT_DIR)/$@/$@.vcd >> $(LOG_DIR)/$@/simulation.log 2>&1
+	
+	@echo "SUCCESS: $@ finished."
 
-# Alias each tb name to its report
-$(ALL_TB): %: $(SIM_DIR)/%/sim_output.txt
-
-# Target that combines all TBs
-.PHONY: sim
-sim: $(ALL_TB)
-
-#
-# ================ VIVADO ================
-#
-
-# - Run all testbenches: example $ make sim-vivado
-# - Run selected testbenches: example $ make sim-vivado TB="tb1 tb2 tb3" USE "...", no need for file extension
-.PHONY: sim-vivado
-sim-vivado:
-	mkdir -p $(SIM_DIR) $(LOG_DIR)
-ifeq ($(TB),)
-	@echo "Simulating all testbenches"
-else
-	@echo "Simulating specific testbenches: $(TB)..."
-endif
-	@$(VIVADO_CMD) -source $(SIMULATE_TCL) \
-		-tclargs $(language) $(HDL_DIR) $(SIM_SRC_DIR) $(DATA_DIR) $(SIM_DIR) $(TB) \
-		> $(LOG_DIR)/sim.log 2>&1
-	@rm -rf *.backup.* vivado.jou
-	@echo "Simulations completed for $(project_name). Logs stored at $(LOG_DIR)/sim.log; Simulation output stored at $(SIM_DIR)"
-
-.PHONY: bit
-bit: $(BITSTREAM_DIR)/$(project_name).bit
-$(BITSTREAM_DIR)/$(project_name).bit:
-	mkdir -p $(NETLIST_DIR) $(BITSTREAM_DIR) $(LOG_DIR)
-	@echo "Building bitstream..."
-	@$(VIVADO_CMD) -source $(BUILD_TCL) \
-		-tclargs $(language) $(HDL_DIR) $(CONSTRAINTS_DIR) $(NETLIST_DIR) $(BITSTREAM_DIR) $(device) $(project_name) $(top_module) \
-		> $(LOG_DIR)/build.log 2>&1
-	@rm -rf *.backup.* vivado.jou
-	@echo "Build completed for $(project_name). Logs stored at $(LOG_DIR)/build.log"
-
-.PHONY: program_fpga
-program_fpga: bit
-	@echo "Programming FPGA..."
-	@$(VIVADO_CMD) -source $(PROGRAM_TCL) \
-		-tclargs $(BITSTREAM_DIR)/$(project_name).bit $(device) \
-		> $(LOG_DIR)/program.log 2>&1
-	@rm -rf *.backup.* vivado.jou
-	@echo "FPGA programmed for $(project_name). Logs stored at $(LOG_DIR)/program.log"
-
-
-#
-# ================ MISC ================
-#
-
-.PHONY: clean
 clean:
-	@echo "Cleaning generated files..."
-	@rm -rf $(BINARIES_DIR) $(LOG_DIR) $(SIM_DIR) *.backup.* vivado.jou vivado.log
-	@echo "Clean completed."
-
-# Pull in previously generated .d dependency files
--include $(wildcard $(D_DIR)/*.d)
+	@echo "Cleaning..."
+	@rm -rf $(BUILD_ROOT) $(SIM_OUT_DIR) $(LOG_DIR) *.cf
