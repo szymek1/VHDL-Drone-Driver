@@ -19,6 +19,7 @@
 -----------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
 
 LIBRARY work;
 USE work.screen_utils_pkg.ALL;
@@ -50,7 +51,7 @@ ARCHITECTURE rtl OF display_controller IS
 
 BEGIN
 
-    p_screen_timer : PROCESS (i_clk, i_reset)
+    p_screen_timer : PROCESS (i_clk, i_rst_n)
     BEGIN
         IF (i_rst_n = '0') THEN
             r_counter <= (OTHERS => '0');
@@ -63,7 +64,7 @@ BEGIN
 
     p_digit_mux : PROCESS (s_digit_select, i_digit_0, i_digit_1, i_digit_2, i_digit_3)
     BEGIN
-        CASE s_digit_slect IS
+        CASE s_digit_select IS
             WHEN C_DIGIT_ID_00 =>
                 o_anodes <= "1110";
                 s_active_digit_val <= i_digit_0;

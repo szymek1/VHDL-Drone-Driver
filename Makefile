@@ -31,11 +31,12 @@ LOG_DIR     := log
 ALL_SRCS := $(wildcard $(SRC_DIR)/*.vhd)
 
 # Exclude files here (those which don't work; without it Make will make GHDL include them and things will fail)
-IGNORE_SRCS := \
-    $(SRC_DIR)/display_controller.vhd \
-	$(SRC_DIR)/screen_utils_pkg.vhd
+# IGNORE_SRCS := \
+#     $(SRC_DIR)/display_controller.vhd \
+# 	$(SRC_DIR)/screen_utils_pkg.vhd
 
-SRCS := $(filter-out $(IGNORE_SRCS), $(ALL_SRCS))
+# SRCS := $(filter-out $(IGNORE_SRCS), $(ALL_SRCS))
+SRCS := $(ALL_SRCS)
 
 TBS_SRCS  := $(wildcard $(SIM_DIR)/*_tb.vhd)
 TBS_NAMES := $(basename $(notdir $(TBS_SRCS)))

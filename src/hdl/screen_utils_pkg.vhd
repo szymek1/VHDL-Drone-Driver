@@ -46,8 +46,7 @@ PACKAGE screen_utils_pkg IS
         DIGIT_13,
         DIGIT_14,
         DIGIT_15,
-        DIGIT_OFF,
-        DIGIT_ERR);
+        DIGIT_OFF);
 
     -- t_segment represents segments (g, f, e, d, c, b, a),
     -- all signals are active low
@@ -109,7 +108,7 @@ PACKAGE screen_utils_pkg IS
         DIGIT_15 => "0001110",
 
         -- all segments OFF
-        DIGIT_OFF => "1111111",
+        DIGIT_OFF => "1111111"
 
         -- error
         -- DIGIT_ERR => "0000110"  -- repeats with E
@@ -136,7 +135,7 @@ PACKAGE screen_utils_pkg IS
 
     -- Functions used to convert the encoded value for a display to present
     -- into an actual HEX representation required by the hardware
-    FUNCTION get_segment_from_velocity(val : t_digit_val) RETURN t_segment;
+    FUNCTION get_segment_from_int(val : t_digit_val) RETURN t_segment;
 
 END screen_utils_pkg;
 PACKAGE BODY screen_utils_pkg IS
