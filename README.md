@@ -20,7 +20,7 @@ System's comoponents are separated in three principal packages:
 
 - ```control_pkq```: contains two FSMs which control movement of the drone
 - ```drone_utils_pkg```: contains generic IPs (```pwm```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
-- ```screen_utils_pkq```: ***TODO***
+- ```screen_utils_pkq```: contains 7-segment display driver module and a function for controlling the display
 
 The application logic is controller by two state machines: 
 
@@ -118,6 +118,31 @@ generic (
                                     -- create 5kHz signal from 100MHz clock
     );
 ```
+
+#### Screen Utilities Package
+This utility package is responsible for providing driver module for the 7-segment display in order to monitor the velocity of each of robot's wheels. It declares ```drone_controller``` module which is responsible for setting two robot's output ports:
+
+- ```an```: selects which digit to update
+- ```seq```: selects what value to display per selected digit
+
+This module is meant to operate with 1ms refresh rate per digit, which means that an enitre screen updates within 4ms.
+
+The key element of ```display_controller``` is:
+
+```vhdl
+p_screen_timer : PROCESS (i_clk, i_rst_n)
+    BEGIN
+        IF (i_rst_n = '0') THEN
+            r_counter <= (OTHERS => '0');
+        ELSIF rising_edge(i_clk) THEN
+            r_counter <= r_counter + 1;
+        END IF;
+    END PROCESS p_screen_timer;
+
+    s_digit_select <= STD_LOGIC_VECTOR(r_counter(r_counter'high DOWNTO r_counter'high - 1));
+```
+
+Where process ```p_screen_timer``` counts until around 500000 FPGA clock cycles (equivalent of 4ms). In a meantime, ```s_digit_select``` selects two MSBs and can choose between: ```00```, ```01```, ```10```, ```11```. Each number has to be updated in a respective 1ms interval. During the first interval: 0ms-1ms MSBs equals ```00``` so the rightmost digit is updated, 1ms-2ms MSBs equals ```01``` etc.. until ```r_counter``` overflows at the end with MSBs being ```11```.
 
 #### Top module
 ```drone_top``` unifies all the packages into the final design. Its important element is the ```p_pwm_decoder```, which interprets ```movement_FMS``` instructions (provided via signals: ```s_fsm_cmd_left```, ```s_fsm_cmd_right```) into an actual duty cycle, which is then provided to ```pwm``` modules.
