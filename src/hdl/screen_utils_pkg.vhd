@@ -124,7 +124,7 @@ PACKAGE screen_utils_pkg IS
         );
         PORT (
             i_clk : IN STD_LOGIC;
-            i_reset : IN STD_LOGIC;
+            i_rst_n : IN STD_LOGIC;
             i_digit_0 : IN t_digit_val; -- rightmost digit
             i_digit_1 : IN t_digit_val;
             i_digit_2 : IN t_digit_val;
