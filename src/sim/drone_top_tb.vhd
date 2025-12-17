@@ -51,6 +51,8 @@ ARCHITECTURE testbench OF drone_top_tb IS
     SIGNAL s_pwm_g_neg : STD_LOGIC;
     SIGNAL s_pwm_d_pos : STD_LOGIC;
     SIGNAL s_pwm_d_neg : STD_LOGIC;
+    SIGNAL seg : STD_LOGIC_VECTOR(6 DOWNTO 0);
+    SIGNAL an : STD_LOGIC_VECTOR(3 DOWNTO 0);
 
 BEGIN
 
@@ -66,7 +68,9 @@ BEGIN
             PWM_G_pos => s_pwm_g_pos,
             PWM_G_neg => s_pwm_g_neg,
             PWM_D_pos => s_pwm_d_pos,
-            PWM_D_neg => s_pwm_d_neg
+            PWM_D_neg => s_pwm_d_neg,
+            seg => seg,
+            an => an
         );
 
     s_clk <= NOT s_clk AFTER C_BASYS3_SYSCLK_NS / 2;
