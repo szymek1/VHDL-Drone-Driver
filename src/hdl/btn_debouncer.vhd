@@ -19,53 +19,47 @@
 -- Additional Comments:
 -- 
 -----------------------------------------------------------------------------------
-
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-
-entity btn_debouncer is
-    generic (
-        G_DEBOUNCE_TIMEOUT_MS: positive := 20;         -- button debounce time delay (by default 20ms)
-        G_CLK_FREQ_HZ        : positive := 100_000_000 -- for this project it is assumed 100MHz
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+ENTITY btn_debouncer IS
+    GENERIC (
+        G_DEBOUNCE_TIMEOUT_MS : POSITIVE := 20; -- button debounce time delay (by default 20ms)
+        G_CLK_FREQ_HZ : POSITIVE := 100_000_000 -- for this project it is assumed 100MHz
     );
-    port (
-        i_clk          : in std_logic;
-        i_rst_n        : in std_logic;
-        i_btn          : in std_logic;
-        o_btn_debounced: out std_logic
+    PORT (
+        i_clk : IN STD_LOGIC;
+        i_rst_n : IN STD_LOGIC;
+        i_btn : IN STD_LOGIC;
+        o_btn_debounced : OUT STD_LOGIC
     );
-end; -- end of the entity
+END; -- end of the entity
+ARCHITECTURE rtl OF btn_debouncer IS
+    SIGNAL s_btn_flipflop : STD_LOGIC_VECTOR(1 DOWNTO 0);
+BEGIN
 
-
-architecture rtl of btn_debouncer is
-    signal s_btn_flipflop: std_logic_vector(1 downto 0);
-begin
-
-    button_debounce_process : process (i_clk, i_rst_n) is
-        constant C_DEBOUNCE_TIMEOUT_CLK_TICKS: positive := (G_CLK_FREQ_HZ / 1000) * G_DEBOUNCE_TIMEOUT_MS;
-        variable debounce_cnt                : natural range 0 to C_DEBOUNCE_TIMEOUT_CLK_TICKS := C_DEBOUNCE_TIMEOUT_CLK_TICKS;
-    begin
-        if (i_rst_n = '0') then
-            debounce_cnt    := C_DEBOUNCE_TIMEOUT_CLK_TICKS;
+    button_debounce_process : PROCESS (i_clk, i_rst_n) IS
+        CONSTANT C_DEBOUNCE_TIMEOUT_CLK_TICKS : POSITIVE := (G_CLK_FREQ_HZ / 1000) * G_DEBOUNCE_TIMEOUT_MS;
+        VARIABLE debounce_cnt : NATURAL RANGE 0 TO C_DEBOUNCE_TIMEOUT_CLK_TICKS := C_DEBOUNCE_TIMEOUT_CLK_TICKS;
+    BEGIN
+        IF (i_rst_n = '0') THEN
+            debounce_cnt := C_DEBOUNCE_TIMEOUT_CLK_TICKS;
             o_btn_debounced <= '0';
-            s_btn_flipflop  <= (others => '0');
-        elsif rising_edge(i_clk) then
+            s_btn_flipflop <= (OTHERS => '0');
+        ELSIF rising_edge(i_clk) THEN
             s_btn_flipflop(0) <= i_btn;
             s_btn_flipflop(1) <= s_btn_flipflop(0);
-            if (s_btn_flipflop(1) = '1') then
-                if (debounce_cnt = 0) then
+            IF (s_btn_flipflop(1) = '1') THEN
+                IF (debounce_cnt = 0) THEN
                     o_btn_debounced <= '1';
-                else
+                ELSE
                     debounce_cnt := debounce_cnt - 1;
-                end if;
-            else
+                END IF;
+            ELSE
                 o_btn_debounced <= '0';
-                debounce_cnt    := C_DEBOUNCE_TIMEOUT_CLK_TICKS;
-            end if;
-        end if;
-    end process button_debounce_process;
+                debounce_cnt := C_DEBOUNCE_TIMEOUT_CLK_TICKS;
+            END IF;
+        END IF;
+    END PROCESS button_debounce_process;
 
-end rtl; -- end of the architecture
+END rtl; -- end of the architecture

@@ -19,51 +19,45 @@
 -- Additional Comments: i_signal is provided by btn_debouncer, which synchornizes it
 -- 
 -----------------------------------------------------------------------------------
-
-
-library ieee;
-use ieee.std_logic_1164.all;
-
-
-entity edge_detector is
-    generic (
-        G_RISING_EDGE: boolean := true -- detect rising edge by default
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+ENTITY edge_detector IS
+    GENERIC (
+        G_RISING_EDGE : BOOLEAN := true -- detect rising edge by default
     );
-    port (
-        i_clk   : in  std_logic;
-        i_rst_n : in  std_logic;
-        i_signal: in  std_logic;
-        o_edge  : out std_logic -- set to high for one clock cycle
+    PORT (
+        i_clk : IN STD_LOGIC;
+        i_rst_n : IN STD_LOGIC;
+        i_signal : IN STD_LOGIC;
+        o_edge : OUT STD_LOGIC -- set to high for one clock cycle
     );
-end; -- end of the entity
-
-
-architecture rtl of edge_detector is
-    signal s_prev_i_signal: std_logic;
-begin
-    egde_detect_process : process (i_clk, i_rst_n) is
-    begin
-        if (i_rst_n = '0') then
+END; -- end of the entity
+ARCHITECTURE rtl OF edge_detector IS
+    SIGNAL s_prev_i_signal : STD_LOGIC;
+BEGIN
+    egde_detect_process : PROCESS (i_clk, i_rst_n) IS
+    BEGIN
+        IF (i_rst_n = '0') THEN
             s_prev_i_signal <= '0';
-            o_edge           <= '0';
-        elsif rising_edge(i_clk) then
+            o_edge <= '0';
+        ELSIF rising_edge(i_clk) THEN
             s_prev_i_signal <= i_signal;
 
-            if (G_RISING_EDGE = true) then
+            IF (G_RISING_EDGE = true) THEN
                 -- detect rising edge
-                if (s_prev_i_signal = '0' and i_signal = '1') then
+                IF (s_prev_i_signal = '0' AND i_signal = '1') THEN
                     o_edge <= '1';
-                else
+                ELSE
                     o_edge <= '0';
-                end if;
-            else
+                END IF;
+            ELSE
                 -- detect falling edge
-                if (s_prev_i_signal = '0' and i_signal = '1') then
+                IF (s_prev_i_signal = '0' AND i_signal = '1') THEN
                     o_edge <= '1';
-                else
+                ELSE
                     o_edge <= '0';
-                end if;
-            end if;
-        end if;
-    end process egde_detect_process;
-end rtl; -- end of the architecture
+                END IF;
+            END IF;
+        END IF;
+    END PROCESS egde_detect_process;
+END rtl; -- end of the architecture

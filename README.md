@@ -20,7 +20,7 @@ System's comoponents are separated in three principal packages:
 
 - ```control_pkq```: contains two FSMs which control movement of the drone
 - ```drone_utils_pkg```: contains generic IPs (```pwm```, ```edge_detector```, ```btn_debouncer```) used to directly interact with the hardware and electric motors
-- ```screen_utils_pkq```: ***TODO***
+- ```screen_utils_pkq```: contains 7-segment display driver module and a function for controlling the display
 
 The application logic is controller by two state machines: 
 
@@ -53,10 +53,10 @@ This FSM doesn't have any knowledge regarding the ```pwm``` parameters. It outpu
 User can customize, if provided sensors indicate the black line as either logical 0 or 1.
 
 ```vhdl
-generic (
-        G_BLACK_LINE: std_logic := '1' -- specify the value which color sensors
-                                       -- provide when the black color is detected.
-                                       -- logic 1 by default 
+GENERIC (
+        G_BLACK_LINE : STD_LOGIC := '1' -- specify the value which color sensors
+        -- provide when the black color is detected.
+        -- logic 1 by default 
     );
 ```
 
@@ -72,9 +72,9 @@ When the button is pressed it secures with the double flip-flop approach the sta
 This module allows for customization in terms of the necessary time for a stable button press and the main clock frequency.
 
 ```vhdl
-generic (
-        G_DEBOUNCE_TIMEOUT_MS: positive := 20;         -- button debounce time delay (by default 20ms)
-        G_CLK_FREQ_HZ        : positive := 100_000_000 -- for this project it is assumed 100MHz
+GENERIC (
+        G_DEBOUNCE_TIMEOUT_MS : POSITIVE := 20; -- button debounce time delay (by default 20ms)
+        G_CLK_FREQ_HZ : POSITIVE := 100_000_000 -- for this project it is assumed 100MHz
     );
 ```
 
@@ -84,8 +84,8 @@ generic (
 This module allows for customization in terms of rising/falling edge detection.
 
 ```vhdl
-generic (
-        G_RISING_EDGE: boolean := true -- detect rising edge by default
+GENERIC (
+        G_RISING_EDGE : BOOLEAN := true -- detect rising edge by default
     );
 ```
 
@@ -107,82 +107,94 @@ The logic which decides when ```o_pwm_cnt``` increments and when PWM issues an i
 Customization is done via the generic map.
 
 ```vhdl
-generic (
-        G_PWM_BITS: integer;        -- specifies the resolution
-                                    -- if equal to 8 bits the PWM counter will
-                                    -- count from 0 to 255
+GENERIC (
+        G_PWM_BITS : INTEGER; -- specifies the resolution
+        -- if equal to 8 bits the PWM counter will
+        -- count from 0 to 255
 
-        G_CLK_DIV : positive := 78  -- clock divider, it specifies how many
-                                    -- "fast clk ticks" equal one "slow clk tick"
-                                    -- set by default to the value allowing to 
-                                    -- create 5kHz signal from 100MHz clock
+        G_CLK_DIV : POSITIVE := 78 -- clock divider, it specifies how many
+        -- "fast clk ticks" equal one "slow clk tick"
+        -- set by default to the value allowing to 
+        -- create 5kHz signal from 100MHz clock
     );
 ```
+
+#### Screen Utilities Package
+This utility package is responsible for providing driver module for the 7-segment display in order to monitor the velocity of each of robot's wheels. It declares ```drone_controller``` module which is responsible for setting two robot's output ports:
+
+- ```an```: selects which digit to update
+- ```seq```: selects what value to display per selected digit
+
+This module is meant to operate with 1ms refresh rate per digit, which means that an enitre screen updates within 4ms.
+
+The key element of ```display_controller``` is:
+
+```vhdl
+p_screen_timer : PROCESS (i_clk, i_rst_n)
+    BEGIN
+        IF (i_rst_n = '0') THEN
+            r_counter <= (OTHERS => '0');
+        ELSIF rising_edge(i_clk) THEN
+            r_counter <= r_counter + 1;
+        END IF;
+    END PROCESS p_screen_timer;
+
+    s_digit_select <= STD_LOGIC_VECTOR(r_counter(r_counter'high DOWNTO r_counter'high - 1));
+```
+
+Where process ```p_screen_timer``` counts until around 500000 FPGA clock cycles (equivalent of 4ms). In a meantime, ```s_digit_select``` selects two MSBs and can choose between: ```00```, ```01```, ```10```, ```11```. Each number has to be updated in a respective 1ms interval. During the first interval: 0ms-1ms MSBs equals ```00``` so the rightmost digit is updated, 1ms-2ms MSBs equals ```01``` etc.. until ```r_counter``` overflows at the end with MSBs being ```11```.
 
 #### Top module
 ```drone_top``` unifies all the packages into the final design. Its important element is the ```p_pwm_decoder```, which interprets ```movement_FMS``` instructions (provided via signals: ```s_fsm_cmd_left```, ```s_fsm_cmd_right```) into an actual duty cycle, which is then provided to ```pwm``` modules.
 
 ```vhdl
 -- Decoding FSM commands and generating the final PWM signal
-    p_pwm_decoder : process (s_fsm_cmd_left, s_fsm_cmd_right) is
-    begin
+    p_pwm_decoder : PROCESS (s_fsm_cmd_left, s_fsm_cmd_right) IS
+    BEGIN
         -- left motor command
-        case s_fsm_cmd_left is
-            when DUTY_CYCLE_0   => s_pwm_duty_left <= C_DUTY_0_PCNT;
-            when DUTY_CYCLE_15  => s_pwm_duty_left <= C_DUTY_15_PCNT;
-            when DUTY_CYCLE_50  => s_pwm_duty_left <= C_DUTY_50_PCNT;
-            when DUTY_CYCLE_90  => s_pwm_duty_left <= C_DUTY_90_PCNT;
-        end case;
-        
+        CASE s_fsm_cmd_left IS
+            WHEN DUTY_CYCLE_0 => s_pwm_duty_left <= C_DUTY_0_PCNT;
+            WHEN DUTY_CYCLE_15 => s_pwm_duty_left <= C_DUTY_15_PCNT;
+            WHEN DUTY_CYCLE_50 => s_pwm_duty_left <= C_DUTY_50_PCNT;
+            WHEN DUTY_CYCLE_90 => s_pwm_duty_left <= C_DUTY_90_PCNT;
+        END CASE;
+
         -- right motor command
-        case s_fsm_cmd_right is
-            when DUTY_CYCLE_0   => s_pwm_duty_right <= C_DUTY_0_PCNT;
-            when DUTY_CYCLE_15  => s_pwm_duty_right <= C_DUTY_15_PCNT;
-            when DUTY_CYCLE_50  => s_pwm_duty_right <= C_DUTY_50_PCNT;
-            when DUTY_CYCLE_90  => s_pwm_duty_right <= C_DUTY_90_PCNT;
-        end case;
-    end process p_pwm_decoder;
+        CASE s_fsm_cmd_right IS
+            WHEN DUTY_CYCLE_0 => s_pwm_duty_right <= C_DUTY_0_PCNT;
+            WHEN DUTY_CYCLE_15 => s_pwm_duty_right <= C_DUTY_15_PCNT;
+            WHEN DUTY_CYCLE_50 => s_pwm_duty_right <= C_DUTY_50_PCNT;
+            WHEN DUTY_CYCLE_90 => s_pwm_duty_right <= C_DUTY_90_PCNT;
+        END CASE;
+    END PROCESS p_pwm_decoder;
 ```
 
 
 ## Project's Structure
-The project follows the structure derived from [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
-```
-.
-├── bin
-├── log
-├── Makefile
-├── dep_analyzer.py
-├── scripts
-│   ├── build.tcl
-│   ├── program_board.tcl
-│   └── simulate.tcl
-├── simulation
-│   └── waveforms
-└── src
-    ├── constraints
-    │   └── constraints.xdc
-    ├── hdl
-    │   └── top.v
-    └── sim
-        ├── top_tb.v 
-```
-- ```bin/```: stores compiled bitstream and netlists
-- ```log/```: stores logs produced by each of TCL scripts
-- ```scripts/```: stores TCL scripts called from Makefile
-- ```simulation/```: stores simulation results and logs per run testbench
+The project consists of the following directories:
+- ```build/```: stores ghdl relevant build files when targets execute 
+- ```log/```: stores logs produced by each target
+- ```scripts/```: stores TCL scripts called from Makefile (**TODO** for Vivado batch mode integrations)
+- ```simulation/```: stores simulation results per run testbench
 - ```src/```: stores HDL and tesbenches source code as well as constraint file
 
-There is one main Makefile specyfying all the targets and the target platform.
-
 ## Usage
-For detailed build environment instruction please refer to [this project of mine](https://github.com/szymek1/FPGA-TCL-Makefile-template).
+There is one main Makefile specyfying all the targets. The simulation assumes using [GHDL](https://github.com/ghdl/ghdl). User can run a single testbench or all of them at once.
 
-The key component is the Makefile from the root directory. The following targets can executed:
+1. Single testbench: ```make <tb_name>```
+2. All testbenches: ```make all```, this implementation supports parallel execution so it is possible to do for example: ```make -j4 all```
 
- ```make conf```: checks, if all direcotires exist and instantiates them in case some are missing
-- ```make sim_all```: runs all availabele testbenches which are stored inside ```src/sim/```-> each tesbench will have a separate direcotry inside ```simulation/waveforms```
-- ```make sim_sel TB="..."```: runs only selected (one or multiple) tesbenches and stores their results inside ```simulation/waveforms```. ***use quote marks to place multiple tesbenches, use only module names!***
-- ```make bit```: generates bitstream and netlist which are stored respectively inside ```bin/bit``` and ```bin/netlist```
-- ```make program_fpga```: programs an FPGA device according to ```device``` field from the Makefile
-- ```make clean```: clears ```bin/``` and ```log/``` directories. ***its doesn't clear ```simulation/```***
+Due to the implementation of ghdl imports via ```ghdl -i...``` by default ghdl will try to import all the files listed inside ```src/hdl/``` this includes the files which might be buggy or incomplete. User can exclude them by editing the Makefile:
+```make
+IGNORE_SRCS := \
+    $(SRC_DIR)/buggy_file.vhd \
+	$(SRC_DIR)/incomplete_file.vhd
+```
+
+After succesfull execution of a testbench its results are stored inside: ```simulation/tb_name``` as ```*.vcd``` files. Inside ```log/tb_name``` there are simulation logs per testbench and in ```build/tb_name``` there are some build artefacts.
+
+# TODO
+
+- enable Vivado based compilation using TCL scripts
+- enable Vivad batch mode build and device flash 
+- push such changes and modify my other project which tries that for Verilog- [the project](https://github.com/szymek1/FPGA-TCL-Makefile-template)
