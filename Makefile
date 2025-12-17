@@ -81,6 +81,12 @@ all: $(TBS_NAMES)
 	
 	@echo "SUCCESS: $@ finished."
 
+
+#
+# ================ MISC ================
+#
+
+.PHONY: clean
 clean:
 	@echo "Cleaning..."
 	@rm -rf $(BUILD_ROOT) $(SIM_OUT_DIR) $(LOG_DIR) *.cf
