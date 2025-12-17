@@ -53,10 +53,10 @@ This FSM doesn't have any knowledge regarding the ```pwm``` parameters. It outpu
 User can customize, if provided sensors indicate the black line as either logical 0 or 1.
 
 ```vhdl
-generic (
-        G_BLACK_LINE: std_logic := '1' -- specify the value which color sensors
-                                       -- provide when the black color is detected.
-                                       -- logic 1 by default 
+GENERIC (
+        G_BLACK_LINE : STD_LOGIC := '1' -- specify the value which color sensors
+        -- provide when the black color is detected.
+        -- logic 1 by default 
     );
 ```
 
@@ -72,9 +72,9 @@ When the button is pressed it secures with the double flip-flop approach the sta
 This module allows for customization in terms of the necessary time for a stable button press and the main clock frequency.
 
 ```vhdl
-generic (
-        G_DEBOUNCE_TIMEOUT_MS: positive := 20;         -- button debounce time delay (by default 20ms)
-        G_CLK_FREQ_HZ        : positive := 100_000_000 -- for this project it is assumed 100MHz
+GENERIC (
+        G_DEBOUNCE_TIMEOUT_MS : POSITIVE := 20; -- button debounce time delay (by default 20ms)
+        G_CLK_FREQ_HZ : POSITIVE := 100_000_000 -- for this project it is assumed 100MHz
     );
 ```
 
@@ -84,8 +84,8 @@ generic (
 This module allows for customization in terms of rising/falling edge detection.
 
 ```vhdl
-generic (
-        G_RISING_EDGE: boolean := true -- detect rising edge by default
+GENERIC (
+        G_RISING_EDGE : BOOLEAN := true -- detect rising edge by default
     );
 ```
 
@@ -107,15 +107,15 @@ The logic which decides when ```o_pwm_cnt``` increments and when PWM issues an i
 Customization is done via the generic map.
 
 ```vhdl
-generic (
-        G_PWM_BITS: integer;        -- specifies the resolution
-                                    -- if equal to 8 bits the PWM counter will
-                                    -- count from 0 to 255
+GENERIC (
+        G_PWM_BITS : INTEGER; -- specifies the resolution
+        -- if equal to 8 bits the PWM counter will
+        -- count from 0 to 255
 
-        G_CLK_DIV : positive := 78  -- clock divider, it specifies how many
-                                    -- "fast clk ticks" equal one "slow clk tick"
-                                    -- set by default to the value allowing to 
-                                    -- create 5kHz signal from 100MHz clock
+        G_CLK_DIV : POSITIVE := 78 -- clock divider, it specifies how many
+        -- "fast clk ticks" equal one "slow clk tick"
+        -- set by default to the value allowing to 
+        -- create 5kHz signal from 100MHz clock
     );
 ```
 
@@ -149,24 +149,24 @@ Where process ```p_screen_timer``` counts until around 500000 FPGA clock cycles 
 
 ```vhdl
 -- Decoding FSM commands and generating the final PWM signal
-    p_pwm_decoder : process (s_fsm_cmd_left, s_fsm_cmd_right) is
-    begin
+    p_pwm_decoder : PROCESS (s_fsm_cmd_left, s_fsm_cmd_right) IS
+    BEGIN
         -- left motor command
-        case s_fsm_cmd_left is
-            when DUTY_CYCLE_0   => s_pwm_duty_left <= C_DUTY_0_PCNT;
-            when DUTY_CYCLE_15  => s_pwm_duty_left <= C_DUTY_15_PCNT;
-            when DUTY_CYCLE_50  => s_pwm_duty_left <= C_DUTY_50_PCNT;
-            when DUTY_CYCLE_90  => s_pwm_duty_left <= C_DUTY_90_PCNT;
-        end case;
-        
+        CASE s_fsm_cmd_left IS
+            WHEN DUTY_CYCLE_0 => s_pwm_duty_left <= C_DUTY_0_PCNT;
+            WHEN DUTY_CYCLE_15 => s_pwm_duty_left <= C_DUTY_15_PCNT;
+            WHEN DUTY_CYCLE_50 => s_pwm_duty_left <= C_DUTY_50_PCNT;
+            WHEN DUTY_CYCLE_90 => s_pwm_duty_left <= C_DUTY_90_PCNT;
+        END CASE;
+
         -- right motor command
-        case s_fsm_cmd_right is
-            when DUTY_CYCLE_0   => s_pwm_duty_right <= C_DUTY_0_PCNT;
-            when DUTY_CYCLE_15  => s_pwm_duty_right <= C_DUTY_15_PCNT;
-            when DUTY_CYCLE_50  => s_pwm_duty_right <= C_DUTY_50_PCNT;
-            when DUTY_CYCLE_90  => s_pwm_duty_right <= C_DUTY_90_PCNT;
-        end case;
-    end process p_pwm_decoder;
+        CASE s_fsm_cmd_right IS
+            WHEN DUTY_CYCLE_0 => s_pwm_duty_right <= C_DUTY_0_PCNT;
+            WHEN DUTY_CYCLE_15 => s_pwm_duty_right <= C_DUTY_15_PCNT;
+            WHEN DUTY_CYCLE_50 => s_pwm_duty_right <= C_DUTY_50_PCNT;
+            WHEN DUTY_CYCLE_90 => s_pwm_duty_right <= C_DUTY_90_PCNT;
+        END CASE;
+    END PROCESS p_pwm_decoder;
 ```
 
 
